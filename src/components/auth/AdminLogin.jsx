@@ -1,7 +1,7 @@
 // src/pages/admin/AdminLogin.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAdminAuth } from '../../hooks/admin/useAdminAuth';
+import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 
 const AdminLogin = () => {
@@ -9,23 +9,20 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [debugInfo, setDebugInfo] = useState('');
-  const { login, isAuthenticated } = useAdminAuth();
+  const { adminLogin, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user?.role === 'admin') {
       navigate('/admin/dashboard');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setDebugInfo('');
 
-    // Validate inputs
     if (!email || !password) {
       setError('Please enter both email and password');
       setLoading(false);
@@ -33,29 +30,25 @@ const AdminLogin = () => {
     }
 
     try {
-      console.log('🔐 Attempting login with:', { email, password: '***' });
-      setDebugInfo('Sending login request...');
-
-      const result = await login({ email, password });
+      console.log('🔐 Admin login attempt:', email);
       
-      console.log('📦 Login result:', result);
-      setDebugInfo('Response received: ' + JSON.stringify(result, null, 2));
+      const result = await adminLogin(email, password);
+      
+      console.log('📦 Admin login result:', result);
 
       if (result.success) {
         toast.success('Welcome Admin!');
         navigate('/admin/dashboard');
       } else {
-        const errorMsg = result.message || result.error || 'Login failed';
+        const errorMsg = result.error || result.message || 'Login failed';
         setError(errorMsg);
         toast.error(errorMsg);
-        setDebugInfo('Error: ' + errorMsg);
       }
     } catch (err) {
-      console.error('❌ Login error:', err);
-      const errorMsg = err.response?.data?.message || err.message || 'Network error. Please check your connection.';
+      console.error('❌ Admin login error:', err);
+      const errorMsg = err.response?.data?.message || 'Network error. Please check your connection.';
       setError(errorMsg);
       toast.error(errorMsg);
-      setDebugInfo('Exception: ' + errorMsg);
     } finally {
       setLoading(false);
     }
@@ -77,15 +70,6 @@ const AdminLogin = () => {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg relative">
             <span className="block sm:inline">❌ {error}</span>
-          </div>
-        )}
-
-        {debugInfo && (
-          <div className="bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 rounded-lg relative text-xs font-mono">
-            <details>
-              <summary className="cursor-pointer">🔍 Debug Info</summary>
-              <pre className="mt-2 whitespace-pre-wrap">{debugInfo}</pre>
-            </details>
           </div>
         )}
 
@@ -143,7 +127,8 @@ const AdminLogin = () => {
           </div>
 
           <div className="text-center text-sm text-gray-500">
-            <p>Use your admin credentials from the database</p>
+            <p>Use your admin credentials</p>
+            <p className="text-xs text-gray-400 mt-1">admin@kft.com / Admin@123</p>
           </div>
         </form>
       </div>

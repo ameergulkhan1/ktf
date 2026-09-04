@@ -10,7 +10,6 @@ const OrderDetail = () => {
   const { id } = useParams();
   const { order, loading, error } = useOrder(id);
 
-  // ✅ Show loading state
   if (loading) {
     return (
       <div className="container-custom py-8">
@@ -21,14 +20,13 @@ const OrderDetail = () => {
     );
   }
 
-  // ✅ Show error state
   if (error) {
     return (
       <div className="container-custom py-8">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-8 text-center">
           <h2 className="text-2xl font-bold text-red-600 dark:text-red-400">Failed to load order</h2>
           <p className="text-gray-600 dark:text-gray-400 mt-2">{error}</p>
-          <Link to="/orders" className="btn-primary inline-block mt-4">
+          <Link to="/orders" className="inline-block mt-4 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-md">
             Back to Orders
           </Link>
         </div>
@@ -36,39 +34,32 @@ const OrderDetail = () => {
     );
   }
 
-  // ✅ Check if order exists
   if (!order) {
     return (
       <div className="container-custom py-8">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Order not found</h2>
-          <Link to="/orders" className="text-primary hover:underline">Back to orders</Link>
+          <Link to="/orders" className="text-blue-600 hover:text-blue-700 hover:underline">Back to orders</Link>
         </div>
       </div>
     );
   }
 
-  // ✅ Helper function to get status color
   const getStatusColor = (status) => {
     const colors = {
       'pending': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
       'processing': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-      'shipped': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
-      'delivered': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+      'shipped': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400',
+      'delivered': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
       'cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
       'refunded': 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
     };
     return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
   };
 
-  // ✅ Get total amount
   const totalAmount = Number(order.total) || Number(order.total_amount) || 0;
-
-  // ✅ Status steps for tracking
   const statusSteps = ['pending', 'processing', 'shipped', 'delivered'];
   const currentStep = statusSteps.indexOf(order.status);
-
-  // ✅ Format date
   const orderDate = order.created_at || order.createdAt || new Date();
 
   return (
@@ -76,20 +67,20 @@ const OrderDetail = () => {
       {/* Back Button */}
       <Link 
         to="/orders" 
-        className="inline-flex items-center text-primary hover:text-primary-dark transition-colors mb-6"
+        className="inline-flex items-center text-blue-600 hover:text-blue-700 transition-colors mb-6"
       >
         <ArrowLeftIcon className="h-4 w-4 mr-2" />
         Back to Orders
       </Link>
 
       {/* Order Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-100 dark:border-gray-700">
         <div className="p-6">
           {/* Order ID and Status */}
           <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Order #{order.order_number || order.id}
+                🇵🇰 Order #{order.order_number || order.id}
               </h1>
               <p className="text-gray-500 dark:text-gray-400 mt-1">
                 {format(new Date(orderDate), 'MMMM dd, yyyy h:mm a')}
@@ -109,7 +100,7 @@ const OrderDetail = () => {
                     <div className="flex flex-col items-center flex-1">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                         index <= currentStep 
-                          ? 'bg-primary text-white' 
+                          ? 'bg-blue-600 text-white' 
                           : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
                       }`}>
                         {index + 1}
@@ -123,7 +114,7 @@ const OrderDetail = () => {
                       </span>
                     </div>
                     {index < statusSteps.length - 1 && (
-                      <div className={`flex-1 h-1 ${index < currentStep ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-600'}`} />
+                      <div className={`flex-1 h-1 ${index < currentStep ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'}`} />
                     )}
                   </div>
                 ))}
@@ -131,7 +122,6 @@ const OrderDetail = () => {
             </div>
           )}
 
-          {/* Cancelled/Refunded Status Message */}
           {(order.status === 'cancelled' || order.status === 'refunded') && (
             <div className={`mb-6 p-4 rounded-lg ${
               order.status === 'cancelled' 
@@ -169,11 +159,6 @@ const OrderDetail = () => {
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         Quantity: {item.quantity}
                       </p>
-                      {item.variant_data && (
-                        <p className="text-xs text-gray-400 dark:text-gray-500">
-                          Variant: {JSON.stringify(item.variant_data)}
-                        </p>
-                      )}
                     </div>
                   </div>
                   <span className="font-semibold text-gray-900 dark:text-white">
@@ -204,14 +189,14 @@ const OrderDetail = () => {
                 </div>
               )}
               {order.discount > 0 && (
-                <div className="flex justify-between text-green-600 dark:text-green-400">
+                <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
                   <span>Discount</span>
                   <span>-${Number(order.discount).toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-xl font-bold mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <span className="text-gray-900 dark:text-white">Total</span>
-                <span className="text-primary">
+                <span className="text-blue-600">
                   ${totalAmount.toFixed(2)}
                 </span>
               </div>
@@ -222,7 +207,7 @@ const OrderDetail = () => {
           {order.delivery_address && (
             <div className="border-t border-gray-200 dark:border-gray-700 mt-6 pt-6">
               <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
-                Delivery Information
+                📍 Delivery Information
               </h2>
               <div className="space-y-1 text-gray-600 dark:text-gray-400">
                 <p><span className="font-medium">Address:</span> {order.delivery_address}</p>
@@ -244,7 +229,7 @@ const OrderDetail = () => {
           {order.payment_method && (
             <div className="border-t border-gray-200 dark:border-gray-700 mt-6 pt-6">
               <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
-                Payment Information
+                💳 Payment Information
               </h2>
               <div className="space-y-1 text-gray-600 dark:text-gray-400">
                 <p><span className="font-medium">Method:</span> {order.payment_method}</p>

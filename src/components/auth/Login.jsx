@@ -11,15 +11,16 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login, user, isAuthenticated } = useAuth();
+  const [loginType, setLoginType] = useState('user'); // 'user' or 'admin'
+  const { login, adminLogin, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // ✅ Get the page user came from
+
+  // Get the page user came from
   const from = location.state?.from?.pathname || '/';
   console.log('📍 Login page - from:', from);
 
-  // ✅ Handle redirect when user becomes authenticated
+  // Handle redirect when user becomes authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
       handleRedirect(user);
@@ -29,21 +30,21 @@ const Login = () => {
   const handleRedirect = (userData) => {
     console.log('📍 Redirecting user with role:', userData?.role);
     console.log('📍 Full user data:', userData);
-    
+
     // ✅ IMPORTANT: Check role and redirect - PRIORITY ORDER
-    if (userData?.role === 'admin') {
+    if (userData?.role === 'admin' || userData?.role === 'super_admin') {
       console.log('📍 Redirecting to ADMIN dashboard');
       navigate('/admin/dashboard', { replace: true });
       return;
-    } 
-    
+    }
+
     if (userData?.role === 'vendor') {
       console.log('📍 Redirecting to VENDOR dashboard');
       navigate('/vendor/dashboard', { replace: true });
       return;
     }
-    
-    // ✅ For regular users, go to the page they came from or home
+
+    // For regular users, go to the page they came from or home
     console.log('📍 Redirecting regular user to:', from);
     navigate(from, { replace: true });
   };
@@ -51,28 +52,39 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
-      const result = await login(email, password);
-      console.log('📦 Login result:', result);
-      
-      if (result.success) {
-        toast.success("Welcome back!");
-        // ✅ Use the user from result
-        handleRedirect(result.user);
+      let result;
+
+      // ✅ Check if trying to login as admin
+      if (loginType === 'admin') {
+        console.log('🔐 Admin login attempt for:', email);
+        result = await adminLogin(email, password);
+        console.log('📦 Admin login result:', result);
       } else {
-        toast.error(result.error || 'Login failed');
+        console.log('🔐 Regular login attempt for:', email);
+        result = await login(email, password);
+        console.log('📦 Regular login result:', result);
+      }
+
+      if (result.success) {
+        toast.success('Welcome back!');
+        // Use the user from result
+        const userData = result.user || result.admin;
+        handleRedirect(userData);
+      } else {
+        toast.error(result.error || result.message || 'Login failed');
       }
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('Login failed. Please try again.');
+      toast.error(error.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -85,12 +97,49 @@ const Login = () => {
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             Or{' '}
-            <Link to="/register" className="font-medium text-primary hover:text-red-600">
+            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
               create a new account
             </Link>
           </p>
         </div>
-        
+
+        {/* ✅ Login Type Selector */}
+        <div className="flex gap-2 rounded-lg bg-gray-100 dark:bg-gray-700 p-1">
+          <button
+            type="button"
+            onClick={() => setLoginType('user')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition ${
+              loginType === 'user'
+                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            👤 User
+          </button>
+          <button
+            type="button"
+            onClick={() => setLoginType('admin')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition ${
+              loginType === 'admin'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            🔐 Admin
+          </button>
+        </div>
+
+        {loginType === 'admin' && (
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <p className="text-xs text-blue-600 dark:text-blue-400">
+              🔑 Admin Login: Use admin credentials
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Test: admin@kft.com / Admin@123
+            </p>
+          </div>
+        )}
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -104,7 +153,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-field"
-                placeholder="Enter your email"
+                placeholder={loginType === 'admin' ? 'admin@kft.com' : 'Enter your email'}
               />
             </div>
             <div>
@@ -138,13 +187,13 @@ const Login = () => {
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
                 Remember me
               </label>
             </div>
-            <Link to="/forgot-password" className="text-sm font-medium text-primary hover:text-red-600">
+            <Link to="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500">
               Forgot password?
             </Link>
           </div>
@@ -153,7 +202,9 @@ const Login = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full flex justify-center items-center"
+              className={`btn-primary w-full flex justify-center items-center bg-blue-600 hover:bg-blue-700 ${
+                loginType === 'admin' ? 'bg-blue-600 hover:bg-blue-700' : ''
+              }`}
             >
               {isLoading ? (
                 <>
@@ -164,13 +215,9 @@ const Login = () => {
                   Signing in...
                 </>
               ) : (
-                'Sign In'
+                loginType === 'admin' ? 'Sign In as Admin' : 'Sign In'
               )}
             </button>
-          </div>
-
-          <div className="text-center text-xs text-gray-500 dark:text-gray-400">
-            <p>New user? <Link to="/register" className="text-primary hover:underline">Register here</Link></p>
           </div>
         </form>
       </motion.div>

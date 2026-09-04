@@ -2,7 +2,6 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// ✅ HARDCODED URL - THIS FIXES THE 404 ERROR
 const API_URL = 'http://localhost:5000/api';
 
 console.log('🔍 API_URL:', API_URL);
@@ -16,39 +15,85 @@ const axiosInstance = axios.create({
   },
 });
 
+// ✅ Flag to prevent multiple logout triggers
+let isLoggingOut = false;
+
 // Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+    
+    console.log(`📤 Request: ${config.method?.toUpperCase()} ${config.url}`);
+    console.log(`🔑 Token present: ${!!token}`);
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log(`✅ Auth header set for ${config.url}`);
+    } else {
+      console.log(`⚠️ No token found for ${config.url}`);
     }
+    
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('❌ Request interceptor error:', error);
+    return Promise.reject(error);
+  }
 );
 
 // Response interceptor
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`📥 Response: ${response.status} ${response.config.url}`);
+    return response;
+  },
   async (error) => {
-    if (error.response?.status === 401) {
-      if (!window.location.pathname.includes('/login')) {
+    const status = error.response?.status;
+    const url = error.config?.url;
+    
+    console.error(`❌ Response error: ${status} ${url}`);
+    
+    // ✅ Handle 401 - but don't show toast immediately
+    if (status === 401) {
+      console.error('🔒 401 Unauthorized');
+      
+      // ✅ Check if this is a vendor API call that failed
+      const isVendorCall = url?.includes('/vendors/');
+      
+      // ✅ Only logout if not already logging out and not a vendor call (which might need token refresh)
+      if (!isLoggingOut && !isVendorCall) {
+        isLoggingOut = true;
+        
+        // Clear tokens
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminUser');
-        toast.error('Session expired. Please login again.');
-        setTimeout(() => window.location.href = '/login', 1000);
+        
+        // Remove auth header
+        delete axiosInstance.defaults.headers.common['Authorization'];
+        
+        // ✅ Only show toast and redirect if not on login page
+        if (!window.location.pathname.includes('/login')) {
+          toast.error('Session expired. Please login again.');
+          setTimeout(() => {
+            window.location.href = '/login';
+            isLoggingOut = false;
+          }, 1000);
+        } else {
+          isLoggingOut = false;
+        }
+      } else {
+        // ✅ For vendor calls, just return error without logout
+        console.log('⏳ Vendor call returned 401 - will retry with new token');
       }
     }
 
-    if (error.response?.status === 404) {
-      console.error('❌ 404 Error:', error.config?.url);
-      // Don't show toast for 404s
+    if (status === 404) {
+      console.error('❌ 404 Error:', url);
     }
 
-    if (error.response?.status >= 500) {
+    if (status >= 500) {
       console.error('Server error:', error.response?.data);
       toast.error('Server error. Please try again later.');
     }

@@ -1,156 +1,265 @@
-﻿// src/hooks/admin/useAdminAuth.jsx
-import React, { useState, useEffect, useContext, createContext } from 'react';
-import { adminAuthService } from '../../services/admin/adminAuthService';
-import api from '../../api/axiosConfig';
+﻿// src/services/admin/adminAuthService.js
+import adminApi from '../../api/adminApi';
 
-const AdminAuthContext = createContext();
-
-export const useAdminAuth = () => {
-  const context = useContext(AdminAuthContext);
-  if (!context) {
-    throw new Error('useAdminAuth must be used within AdminAuthProvider');
-  }
-  return context;
-};
-
-export const AdminAuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const token = localStorage.getItem('adminToken');
-        if (token) {
-          const userData = JSON.parse(localStorage.getItem('adminUser') || '{}');
-          
-          // Verify token with backend (optional)
-          try {
-            const response = await adminAuthService.verifyToken();
-            if (response.success) {
-              setUser(response.user);
-              setIsAuthenticated(true);
-              api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            } else {
-              // Token invalid, logout
-              logout();
-            }
-          } catch (error) {
-            // If verify endpoint doesn't exist, use stored user data
-            if (error.response?.status === 404) {
-              console.log('ℹ️ Verify endpoint not found, using stored user data');
-              setUser(userData);
-              setIsAuthenticated(true);
-              api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            } else {
-              console.error('Token verification failed:', error);
-              // Only logout if not a 404
-              if (error.response?.status !== 404) {
-                logout();
-              } else {
-                // Use stored data
-                setUser(userData);
-                setIsAuthenticated(true);
-                api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        logout();
-      } finally {
-        setLoading(false);
-      }
-    };
-    initAuth();
-  }, []);
-
-  const login = async (credentials) => {
+export const adminAuthService = {
+  // ✅ Admin login - Updated endpoint
+  login: async (credentials) => {
     try {
-      setLoading(true);
-      console.log('📤 Sending admin login request...');
-      
-      const response = await adminAuthService.login(credentials);
-      console.log('📥 Admin login response:', response);
-      
-      if (response.success) {
-        const { user, token } = response;
-        setUser(user);
-        setIsAuthenticated(true);
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        return { success: true, user };
-      } else {
-        return { 
-          success: false, 
-          message: response.message || 'Login failed' 
-        };
-      }
+      console.log('📤 Admin login request:', credentials.email);
+      const response = await adminApi.post('/admin/auth/login', credentials);
+      console.log('📥 Admin login response:', response.data);
+      return response.data;
     } catch (error) {
       console.error('❌ Admin login error:', error);
-      let errorMessage = 'Login failed. Please try again.';
-      
-      if (error.response) {
-        errorMessage = error.response.data?.message || 
-                       error.response.data?.error || 
-                       `Server error: ${error.response.status}`;
-      } else if (error.request) {
-        errorMessage = 'No response from server. Make sure the backend is running.';
-      }
-      
-      return { 
-        success: false, 
-        message: errorMessage,
-        error: error
-      };
-    } finally {
-      setLoading(false);
+      throw error;
     }
-  };
+  },
 
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    delete api.defaults.headers.common['Authorization'];
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-  };
-
-  const updateProfile = async (data) => {
+  // ✅ Verify admin token
+  verifyToken: async () => {
     try {
-      const response = await adminAuthService.updateProfile(data);
-      if (response.success) {
-        setUser(response.data);
-        localStorage.setItem('adminUser', JSON.stringify(response.data));
-        return { success: true, message: response.message };
-      }
-      return { success: false, message: response.message };
+      const response = await adminApi.get('/admin/auth/verify');
+      return response.data;
     } catch (error) {
-      console.error('Update profile error:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Profile update failed'
-      };
+      console.error('❌ Verify token error:', error);
+      throw error;
     }
-  };
+  },
 
-  const authValue = {
-    user,
-    loading,
-    isAuthenticated,
-    login,
-    logout,
-    updateProfile,
-    isAdmin: user?.role === 'admin' || user?.role === 'super_admin',
-    isSuperAdmin: user?.role === 'super_admin'
-  };
+  // ✅ Get admin profile
+  getProfile: async () => {
+    try {
+      const response = await adminApi.get('/admin/auth/profile');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Get profile error:', error);
+      throw error;
+    }
+  },
 
-  return (
-    <AdminAuthContext.Provider value={authValue}>
-      {children}
-    </AdminAuthContext.Provider>
-  );
+  // ✅ Update admin profile
+  updateProfile: async (data) => {
+    try {
+      const response = await adminApi.put('/admin/auth/profile', data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Update profile error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Change admin password
+  changePassword: async (data) => {
+    try {
+      const response = await adminApi.put('/admin/auth/password', data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Change password error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Admin logout
+  logout: async () => {
+    try {
+      const response = await adminApi.post('/admin/auth/logout');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+      throw error;
+    }
+  },
+
+  // ============================================
+  // ADMIN DASHBOARD ENDPOINTS
+  // ============================================
+
+  // ✅ Get dashboard stats
+  getDashboardStats: async () => {
+    try {
+      const response = await adminApi.get('/admin/dashboard');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Get dashboard stats error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Get all users
+  getUsers: async (params) => {
+    try {
+      const response = await adminApi.get('/admin/users', { params });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Get users error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Get all vendors
+  getVendors: async (params) => {
+    try {
+      const response = await adminApi.get('/admin/vendors', { params });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Get vendors error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Get vendor by ID
+  getVendorById: async (id) => {
+    try {
+      const response = await adminApi.get(`/admin/vendors/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Get vendor by ID error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Approve vendor
+  approveVendor: async (id) => {
+    try {
+      const response = await adminApi.put(`/admin/vendors/${id}/approve`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Approve vendor error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Reject vendor
+  rejectVendor: async (id, reason) => {
+    try {
+      const response = await adminApi.put(`/admin/vendors/${id}/reject`, { reason });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Reject vendor error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Suspend vendor
+  suspendVendor: async (id, reason) => {
+    try {
+      const response = await adminApi.put(`/admin/vendors/${id}/suspend`, { reason });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Suspend vendor error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Unsuspend vendor
+  unsuspendVendor: async (id) => {
+    try {
+      const response = await adminApi.put(`/admin/vendors/${id}/unsuspend`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Unsuspend vendor error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Get all restaurants
+  getRestaurants: async (params) => {
+    try {
+      const response = await adminApi.get('/admin/restaurants', { params });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Get restaurants error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Get all orders
+  getOrders: async (params) => {
+    try {
+      const response = await adminApi.get('/admin/orders', { params });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Get orders error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Get commissions
+  getCommissions: async (params) => {
+    try {
+      const response = await adminApi.get('/admin/commissions', { params });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Get commissions error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Delete user
+  deleteUser: async (id) => {
+    try {
+      const response = await adminApi.delete(`/admin/users/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Delete user error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Update user status
+  updateUserStatus: async (id, isActive) => {
+    try {
+      const response = await adminApi.put(`/admin/users/${id}/status`, { is_active: isActive });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Update user status error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Approve restaurant
+  approveRestaurant: async (id) => {
+    try {
+      const response = await adminApi.put(`/admin/restaurants/${id}/approve`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Approve restaurant error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Reject restaurant
+  rejectRestaurant: async (id) => {
+    try {
+      const response = await adminApi.put(`/admin/restaurants/${id}/reject`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Reject restaurant error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Suspend restaurant
+  suspendRestaurant: async (id, reason) => {
+    try {
+      const response = await adminApi.put(`/admin/restaurants/${id}/suspend`, { reason });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Suspend restaurant error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Unsuspend restaurant
+  unsuspendRestaurant: async (id) => {
+    try {
+      const response = await adminApi.put(`/admin/restaurants/${id}/unsuspend`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Unsuspend restaurant error:', error);
+      throw error;
+    }
+  }
 };
+
+export default adminAuthService;

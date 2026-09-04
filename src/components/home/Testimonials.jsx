@@ -6,33 +6,33 @@ import { FiStar } from 'react-icons/fi';
 const testimonials = [
   {
     id: 1,
-    name: 'Sarah Johnson',
-    role: 'Food Lover',
+    name: 'Ahmed Khan',
+    role: 'Food Lover 🇵🇰',
     image: 'https://i.pravatar.cc/100?img=1',
     rating: 5,
-    text: 'Absolutely amazing food delivery service! The food arrived hot and fresh. Highly recommend!',
+    text: 'Absolutely amazing desi food delivery service! The biryani arrived hot and fresh. Highly recommend!',
   },
   {
     id: 2,
-    name: 'Michael Chen',
+    name: 'Fatima Ali',
     role: 'Regular Customer',
     image: 'https://i.pravatar.cc/100?img=2',
     rating: 5,
-    text: 'Best food delivery platform I have ever used. Great selection of restaurants and fast delivery.',
+    text: 'Best food delivery platform for Pakistani cuisine. Great selection of restaurants and fast delivery.',
   },
   {
     id: 3,
-    name: 'Emily Davis',
+    name: 'Usman Malik',
     role: 'Food Enthusiast',
     image: 'https://i.pravatar.cc/100?img=3',
     rating: 4,
-    text: 'Love the variety of cuisines available. The app is easy to use and the food is always delicious.',
+    text: 'Love the variety of desi cuisines available. The app is easy to use and the food is always delicious.',
   },
 ];
 
 const Testimonials = () => {
   return (
-    <section className="py-20 bg-gradient-to-r from-red-50 to-orange-50 dark:from-gray-800 dark:to-gray-900 transition-colors duration-200">
+    <section className="py-20 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 transition-colors duration-200">
       <div className="container-custom">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -41,10 +41,10 @@ const Testimonials = () => {
           className="text-center max-w-2xl mx-auto mb-12"
         >
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            What Our Customers Say
+            🇵🇰 What Our Customers Say
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Real reviews from real people who love our service
+            Real reviews from real people who love our desi service
           </p>
         </motion.div>
 

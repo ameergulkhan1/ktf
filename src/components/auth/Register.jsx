@@ -85,7 +85,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -98,7 +98,7 @@ const Register = () => {
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             Or{' '}
-            <Link to="/login" className="font-medium text-primary hover:text-red-600">
+            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
               sign in to your account
             </Link>
           </p>
@@ -276,7 +276,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full flex justify-center items-center"
+              className="btn-primary w-full flex justify-center items-center bg-blue-600 hover:bg-blue-700"
             >
               {isLoading ? (
                 <>
@@ -294,9 +294,9 @@ const Register = () => {
 
           <p className="text-xs text-center text-gray-500 dark:text-gray-400">
             By creating an account, you agree to our{' '}
-            <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link>
+            <Link to="/terms" className="text-blue-600 hover:underline">Terms of Service</Link>
             {' '}and{' '}
-            <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+            <Link to="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>
           </p>
         </form>
       </motion.div>

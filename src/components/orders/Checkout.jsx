@@ -25,7 +25,6 @@ const Checkout = () => {
   const { user } = useAuth();
   const { items, total, count, clearCart, fetchCart } = useCart();
   
-  // ✅ Ensure items is always an array
   const cartItems = Array.isArray(items) ? items : [];
   const cartTotal = safeNumber(total) || cartItems.reduce((sum, item) => sum + (safeNumber(item.price) * safeNumber(item.quantity)), 0);
   const itemCount = safeNumber(count) || cartItems.length;
@@ -46,16 +45,14 @@ const Checkout = () => {
     landmark: '',
     phone: user?.phone || '',
     notes: '',
-    payment_method: 'cash' // Default to cash
+    payment_method: 'cash'
   });
 
-  // ✅ Fetch cart on mount
   useEffect(() => {
     fetchCart();
     fetchPaymentMethods();
   }, []);
 
-  // Fetch payment methods
   const fetchPaymentMethods = async () => {
     try {
       setLoadingPaymentMethods(true);
@@ -70,7 +67,6 @@ const Checkout = () => {
     }
   };
 
-  // ✅ Redirect if cart is empty
   useEffect(() => {
     if (!loading && cartItems.length === 0 && !orderPlaced) {
       toast.error('Your cart is empty');
@@ -86,7 +82,6 @@ const Checkout = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // ✅ Validate form
     if (!formData.house_no || !formData.street || !formData.sector || !formData.city || !formData.phone) {
       toast.error('Please fill in all required fields');
       return;
@@ -95,7 +90,6 @@ const Checkout = () => {
     try {
       setLoading(true);
       
-      // ✅ Build full address
       const deliveryAddress = [
         formData.house_no,
         formData.street,
@@ -105,7 +99,6 @@ const Checkout = () => {
         formData.postal_code
       ].filter(Boolean).join(', ');
 
-      // ✅ Prepare order data
       const orderData = {
         user_id: user?.id,
         items: cartItems.map(item => ({
@@ -130,15 +123,11 @@ const Checkout = () => {
 
       console.log('📦 Order data:', orderData);
 
-      // ✅ Send order to API
       const response = await orderApi.create(orderData);
       console.log('📥 Order response:', response);
 
       if (response && response.success) {
-        // ✅ Clear cart
         await clearCart();
-        
-        // ✅ Show success
         setOrderNumber(response.order?.order_number || 'ORD-' + Date.now());
         setOrderPlaced(true);
         toast.success('Order placed successfully! 🎉');
@@ -153,7 +142,6 @@ const Checkout = () => {
     }
   };
 
-  // ✅ If order is placed, show success page
   if (orderPlaced) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -162,12 +150,12 @@ const Checkout = () => {
             <FiCheckCircle className="w-10 h-10 text-green-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            Order Placed Successfully! 🎉
+            Order Placed Successfully! 🇵🇰
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-2">
             Thank you for your order. Your order number is:
           </p>
-          <p className="text-2xl font-bold text-red-600 mb-6">
+          <p className="text-2xl font-bold text-blue-600 mb-6">
             {orderNumber}
           </p>
           <p className="text-gray-500 dark:text-gray-400 mb-8">
@@ -176,13 +164,13 @@ const Checkout = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/orders"
-              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition"
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition shadow-md"
             >
               View My Orders
             </Link>
             <Link
               to="/"
-              className="px-6 py-3 border border-gray-300 hover:border-red-600 text-gray-700 hover:text-red-600 rounded-xl transition"
+              className="px-6 py-3 border border-gray-300 hover:border-blue-600 text-gray-700 hover:text-blue-600 rounded-xl transition"
             >
               Continue Shopping
             </Link>
@@ -192,7 +180,6 @@ const Checkout = () => {
     );
   }
 
-  // ✅ If cart is empty, show empty state
   if (cartItems.length === 0 && !loading) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -204,7 +191,7 @@ const Checkout = () => {
           </p>
           <Link
             to="/products"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition shadow-md"
           >
             <FiArrowLeft className="w-4 h-4" />
             Start Shopping
@@ -219,16 +206,16 @@ const Checkout = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <Link to="/cart" className="text-gray-500 hover:text-gray-700 transition">
+          <Link to="/cart" className="text-gray-500 hover:text-blue-600 transition">
             <FiArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Checkout</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">🇵🇰 Checkout</h1>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Order Summary */}
           <div className="lg:w-1/3 order-2 lg:order-1">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 sticky top-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 sticky top-4 border border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
                 Order Summary
               </h2>
@@ -266,7 +253,7 @@ const Checkout = () => {
                 </div>
                 <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-gray-700">
                   <span>Total</span>
-                  <span className="text-red-600">
+                  <span className="text-blue-600">
                     ${(cartTotal + (cartTotal > 50 ? 0 : 5) + (cartTotal * 0.1)).toFixed(2)}
                   </span>
                 </div>
@@ -278,12 +265,11 @@ const Checkout = () => {
           <div className="lg:w-2/3 order-1 lg:order-2">
             <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <FiUser className="w-5 h-5 text-red-600" />
+                <FiUser className="w-5 h-5 text-blue-600" />
                 Delivery Details
               </h2>
 
               <div className="space-y-4">
-                {/* House/Flat No */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     House/Flat No <span className="text-red-500">*</span>
@@ -294,12 +280,11 @@ const Checkout = () => {
                     value={formData.house_no}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
                     placeholder="e.g., House #12, Flat 3B"
                   />
                 </div>
 
-                {/* Street */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Street <span className="text-red-500">*</span>
@@ -310,12 +295,11 @@ const Checkout = () => {
                     value={formData.street}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
                     placeholder="e.g., Street 5, Main Boulevard"
                   />
                 </div>
 
-                {/* Sector/Area */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Sector/Area <span className="text-red-500">*</span>
@@ -326,12 +310,11 @@ const Checkout = () => {
                     value={formData.sector}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
                     placeholder="e.g., G-11, F-7, DHA Phase 5"
                   />
                 </div>
 
-                {/* City & State */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -343,7 +326,7 @@ const Checkout = () => {
                       value={formData.city}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                      className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
                       placeholder="e.g., Islamabad, Lahore"
                     />
                   </div>
@@ -356,7 +339,7 @@ const Checkout = () => {
                       value={formData.state}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                      className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
                     >
                       <option value="">Select Province</option>
                       <option value="Punjab">Punjab</option>
@@ -370,7 +353,6 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                {/* Postal Code */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Postal Code
@@ -380,12 +362,11 @@ const Checkout = () => {
                     name="postal_code"
                     value={formData.postal_code}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
                     placeholder="e.g., 44000"
                   />
                 </div>
 
-                {/* Landmark */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Landmark (Optional)
@@ -395,12 +376,11 @@ const Checkout = () => {
                     name="landmark"
                     value={formData.landmark}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
                     placeholder="e.g., Near Centaurus Mall"
                   />
                 </div>
 
-                {/* Phone */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Phone Number <span className="text-red-500">*</span>
@@ -411,12 +391,11 @@ const Checkout = () => {
                     value={formData.phone}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
                     placeholder="e.g., 03XX-XXXXXXX"
                   />
                 </div>
 
-                {/* Delivery Instructions */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Delivery Instructions (Optional)
@@ -426,7 +405,7 @@ const Checkout = () => {
                     value={formData.notes}
                     onChange={handleChange}
                     rows="3"
-                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
                     placeholder="Any special instructions for delivery..."
                   />
                 </div>
@@ -438,9 +417,8 @@ const Checkout = () => {
                     Payment Method
                   </label>
                   <div className="space-y-2">
-                    {/* Cash on Delivery */}
-                    <label className="flex items-center p-3 border border-gray-300 rounded-lg hover:border-red-500 cursor-pointer transition"
-                      style={{borderColor: formData.payment_method === 'cash' ? '#dc2626' : '', backgroundColor: formData.payment_method === 'cash' ? '#fff5f5' : ''}}
+                    <label className="flex items-center p-3 border border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer transition"
+                      style={{borderColor: formData.payment_method === 'cash' ? '#2563EB' : '', backgroundColor: formData.payment_method === 'cash' ? '#eff6ff' : ''}}
                     >
                       <input
                         type="radio"
@@ -448,7 +426,7 @@ const Checkout = () => {
                         value="cash"
                         checked={formData.payment_method === 'cash'}
                         onChange={handleChange}
-                        className="w-4 h-4 text-red-600"
+                        className="w-4 h-4 text-blue-600"
                       />
                       <div className="ml-3 flex-1">
                         <span className="font-medium text-gray-900 dark:text-white">Cash on Delivery</span>
@@ -456,12 +434,11 @@ const Checkout = () => {
                       </div>
                     </label>
 
-                    {/* Card Payment */}
                     {paymentMethods.filter(m => m.method_type === 'card').length > 0 && (
                       <optgroup label="Card Payments" className="block">
                         {paymentMethods.filter(m => m.method_type === 'card').map((method) => (
-                          <label key={method.id} className="flex items-center p-3 border border-gray-300 rounded-lg hover:border-red-500 cursor-pointer transition"
-                            style={{borderColor: formData.payment_method === `card-${method.id}` ? '#dc2626' : '', backgroundColor: formData.payment_method === `card-${method.id}` ? '#fff5f5' : ''}}
+                          <label key={method.id} className="flex items-center p-3 border border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer transition"
+                            style={{borderColor: formData.payment_method === `card-${method.id}` ? '#2563EB' : '', backgroundColor: formData.payment_method === `card-${method.id}` ? '#eff6ff' : ''}}
                           >
                             <input
                               type="radio"
@@ -469,7 +446,7 @@ const Checkout = () => {
                               value={`card-${method.id}`}
                               checked={formData.payment_method === `card-${method.id}`}
                               onChange={handleChange}
-                              className="w-4 h-4 text-red-600"
+                              className="w-4 h-4 text-blue-600"
                             />
                             <div className="ml-3 flex-1">
                               <span className="font-medium text-gray-900 dark:text-white">
@@ -483,12 +460,11 @@ const Checkout = () => {
                       </optgroup>
                     )}
 
-                    {/* Bank Transfer */}
                     {paymentMethods.filter(m => m.method_type === 'bank_transfer').length > 0 && (
                       <optgroup label="Bank Transfers" className="block">
                         {paymentMethods.filter(m => m.method_type === 'bank_transfer').map((method) => (
-                          <label key={method.id} className="flex items-center p-3 border border-gray-300 rounded-lg hover:border-red-500 cursor-pointer transition"
-                            style={{borderColor: formData.payment_method === `bank-${method.id}` ? '#dc2626' : '', backgroundColor: formData.payment_method === `bank-${method.id}` ? '#fff5f5' : ''}}
+                          <label key={method.id} className="flex items-center p-3 border border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer transition"
+                            style={{borderColor: formData.payment_method === `bank-${method.id}` ? '#2563EB' : '', backgroundColor: formData.payment_method === `bank-${method.id}` ? '#eff6ff' : ''}}
                           >
                             <input
                               type="radio"
@@ -496,7 +472,7 @@ const Checkout = () => {
                               value={`bank-${method.id}`}
                               checked={formData.payment_method === `bank-${method.id}`}
                               onChange={handleChange}
-                              className="w-4 h-4 text-red-600"
+                              className="w-4 h-4 text-blue-600"
                             />
                             <div className="ml-3 flex-1">
                               <span className="font-medium text-gray-900 dark:text-white">
@@ -510,10 +486,9 @@ const Checkout = () => {
                     )}
                   </div>
 
-                  {/* Add Payment Method Link */}
                   {paymentMethods.length === 0 && formData.payment_method !== 'cash' && (
                     <p className="text-xs text-gray-500 mt-3">
-                      No payment methods added. <Link to="/profile/payment-methods" className="text-red-600 hover:text-red-700">Add payment method</Link>
+                      No payment methods added. <Link to="/profile/payment-methods" className="text-blue-600 hover:text-blue-700">Add payment method</Link>
                     </p>
                   )}
                 </div>
@@ -522,7 +497,7 @@ const Checkout = () => {
               <button
                 type="submit"
                 disabled={loading || cartItems.length === 0}
-                className="w-full mt-6 px-6 py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white rounded-xl transition flex items-center justify-center gap-2 font-semibold"
+                className="w-full mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-xl transition flex items-center justify-center gap-2 font-semibold shadow-md"
               >
                 {loading ? (
                   <>
@@ -532,7 +507,7 @@ const Checkout = () => {
                 ) : (
                   <>
                     <FiCreditCard className="w-5 h-5" />
-                    Place Order
+                    Place Order 🇵🇰
                   </>
                 )}
               </button>

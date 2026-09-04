@@ -1,6 +1,6 @@
 ﻿// src/components/home/FeaturedRestaurants.jsx
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';  // ✅ Only ONE import
+import { Link } from 'react-router-dom';
 import { restaurantApi } from '../../api/restaurantApi';
 import { FiStar, FiMapPin, FiClock, FiChevronRight, FiArrowRight } from 'react-icons/fi';
 
@@ -68,7 +68,7 @@ const RestaurantCard = ({ restaurant }) => {
             onError={(e) => { e.target.style.display = 'none'; }}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
             <span className="text-6xl opacity-50">🍽️</span>
           </div>
         )}
@@ -105,11 +105,11 @@ const RestaurantCard = ({ restaurant }) => {
 
       <div className="p-5">
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors line-clamp-1">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
             {name}
           </h3>
           {isFeatured && (
-            <span className="flex-shrink-0 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2.5 py-1 rounded-full">
+            <span className="flex-shrink-0 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2.5 py-1 rounded-full">
               Featured
             </span>
           )}
@@ -130,7 +130,7 @@ const RestaurantCard = ({ restaurant }) => {
               {reviews} reviews
             </span>
           </div>
-          <span className="text-red-600 dark:text-red-400 group-hover:translate-x-1 transition-transform">
+          <span className="text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
             <FiChevronRight className="w-5 h-5" />
           </span>
         </div>
@@ -200,7 +200,7 @@ const FeaturedRestaurants = () => {
         <p className="text-gray-500 dark:text-gray-400 mb-4">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition"
+          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition"
         >
           Try Again
         </button>
@@ -222,19 +222,19 @@ const FeaturedRestaurants = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-1 h-8 bg-red-500 rounded-full" />
+          <div className="w-1 h-8 bg-blue-500 rounded-full" />
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Featured Restaurants
+              🇵🇰 Featured Restaurants
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Top-rated restaurants near you
+              Top-rated desi restaurants near you
             </p>
           </div>
         </div>
         <Link
           to="/restaurants"
-          className="group flex items-center gap-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium transition-colors"
+          className="group flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
         >
           View All
           <FiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

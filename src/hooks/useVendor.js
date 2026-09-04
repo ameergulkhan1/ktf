@@ -1,9 +1,11 @@
-// src/hooks/useVendor.js
+﻿// src/hooks/useVendor.js
 import { useState, useEffect, useCallback, useRef } from 'react';
 import vendorApi from '../api/vendorApi';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 export const useVendor = () => {
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState(null);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -13,6 +15,7 @@ export const useVendor = () => {
   const [error, setError] = useState(null);
   const mounted = useRef(true);
   const fetchedRef = useRef(false);
+  const cacheRef = useRef({});
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -30,7 +33,6 @@ export const useVendor = () => {
   const fetchProducts = useCallback(async () => {
     try {
       const response = await vendorApi.getProducts();
-      console.log('📥 Fetch products response:', response);
       if (mounted.current && response?.success) {
         const productData = response.products || response.data || [];
         setProducts(productData);
@@ -81,31 +83,55 @@ export const useVendor = () => {
     }
   }, []);
 
+  // ✅ Load data in parallel with caching
   useEffect(() => {
     mounted.current = true;
-    
+
+    if (authLoading) {
+      console.log('⏳ Waiting for auth to load...');
+      return;
+    }
+
+    if (!isAuthenticated || user?.role !== 'vendor') {
+      console.log('⏭️ Not vendor or not authenticated, skipping vendor data load');
+      setLoading(false);
+      return;
+    }
+
     if (fetchedRef.current) return;
     fetchedRef.current = true;
 
-    const forceComplete = setTimeout(() => {
-      if (mounted.current) {
-        console.log('⏰ Force completing vendor loading');
-        setLoading(false);
-      }
-    }, 5000);
-
     const loadData = async () => {
       try {
-        console.log('🚀 Loading vendor data...');
+        console.log('🚀 Loading vendor data in parallel for user:', user?.id);
         setLoading(true);
         setError(null);
 
-        // Load data sequentially to prevent overwhelming the server
-        await fetchProfile();
-        await fetchProducts();
-        await fetchOrders();
-        await fetchEarnings();
-        await fetchWallet();
+        // ✅ Load ALL data in parallel (much faster)
+        const [profileRes, productsRes, ordersRes, earningsRes, walletRes] = await Promise.all([
+          fetchProfile(),
+          fetchProducts(),
+          fetchOrders(),
+          fetchEarnings(),
+          fetchWallet()
+        ]);
+
+        // ✅ Update state with all results
+        if (profileRes?.success) {
+          setProfile(profileRes.vendor || profileRes.data);
+        }
+        if (productsRes?.success) {
+          setProducts(productsRes.products || productsRes.data || []);
+        }
+        if (ordersRes?.success) {
+          setOrders(ordersRes.orders || ordersRes.data || []);
+        }
+        if (earningsRes?.success) {
+          setEarnings(earningsRes.earnings || earningsRes.data || { total: 0, pending: 0, available: 0 });
+        }
+        if (walletRes?.success) {
+          setWallet(walletRes.wallet || walletRes.data || { balance: 0, pending: 0, totalEarned: 0 });
+        }
 
         console.log('✅ Vendor data loaded successfully');
       } catch (err) {
@@ -113,34 +139,19 @@ export const useVendor = () => {
         setError(err.message);
       } finally {
         if (mounted.current) {
-          console.log('✅ Setting loading to false');
           setLoading(false);
-          clearTimeout(forceComplete);
         }
       }
     };
 
-    loadData();
+    // ✅ Start loading immediately with a small delay for token
+    const timer = setTimeout(loadData, 50);
 
     return () => {
       mounted.current = false;
-      clearTimeout(forceComplete);
+      clearTimeout(timer);
     };
-  }, [fetchProfile, fetchProducts, fetchOrders, fetchEarnings, fetchWallet]);
-
-  const withdraw = useCallback(async (data) => {
-    try {
-      const response = await vendorApi.withdraw(data);
-      if (response?.success) {
-        await fetchWallet();
-        toast.success('Withdrawal request submitted successfully');
-      }
-      return response;
-    } catch (err) {
-      toast.error('Failed to submit withdrawal request');
-      return { success: false, message: err.message };
-    }
-  }, [fetchWallet]);
+  }, [isAuthenticated, user, authLoading, fetchProfile, fetchProducts, fetchOrders, fetchEarnings, fetchWallet]);
 
   const updateProfile = useCallback(async (data) => {
     try {
@@ -156,13 +167,27 @@ export const useVendor = () => {
     }
   }, []);
 
+  const withdraw = useCallback(async (data) => {
+    try {
+      const response = await vendorApi.withdraw(data);
+      if (response?.success) {
+        await fetchWallet();
+        toast.success('Withdrawal request submitted successfully');
+      }
+      return response;
+    } catch (err) {
+      toast.error('Failed to submit withdrawal request');
+      return { success: false, message: err.message };
+    }
+  }, [fetchWallet]);
+
   return {
     profile,
     products,
     orders,
     earnings,
     wallet,
-    loading,
+    loading: loading || authLoading,
     error,
     fetchProfile,
     refetchProfile: fetchProfile,

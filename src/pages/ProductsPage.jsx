@@ -5,13 +5,13 @@ import { productApi } from '../api/productApi';
 import { FiSearch, FiGrid, FiList, FiChevronLeft, FiChevronRight, FiStar, FiShoppingCart } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
-// ✅ Safe number formatter
+// Safe number formatter
 const safeNumber = (value, fallback = 0) => {
   const num = parseFloat(value);
   return isNaN(num) ? fallback : num;
 };
 
-// ✅ Safe string getter
+// Safe string getter
 const safeString = (value, fallback = '') => {
   if (value === null || value === undefined || value === 'null' || value === 'undefined') {
     return fallback;
@@ -20,7 +20,7 @@ const safeString = (value, fallback = '') => {
 };
 
 const ProductCard = ({ product }) => {
-  // ✅ Safely extract all product data
+  // Safely extract all product data
   const id = product?.id || 0;
   const name = safeString(product?.name, 'Product');
   const price = safeNumber(product?.price);
@@ -44,12 +44,12 @@ const ProductCard = ({ product }) => {
               onError={(e) => { e.target.style.display = 'none'; }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-red-500 to-red-700 text-white">
+            <div className="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-blue-500 to-blue-700 text-white">
               📦
             </div>
           )}
           {discount > 0 && (
-            <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+            <span className="absolute top-3 left-3 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
               -{discount}%
             </span>
           )}
@@ -61,7 +61,7 @@ const ProductCard = ({ product }) => {
           )}
         </div>
         <div className="p-4">
-          <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition line-clamp-1">
+          <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition line-clamp-1">
             {name}
           </h3>
           {description && (
@@ -97,7 +97,7 @@ const ProductCard = ({ product }) => {
                 e.preventDefault();
                 toast.success('Added to cart!');
               }}
-              className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+              className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-md hover:shadow-lg"
               disabled={stock === 0}
             >
               <FiShoppingCart className="w-4 h-4" />
@@ -221,7 +221,7 @@ const ProductsPage = () => {
         <p className="text-gray-500 dark:text-gray-400 mb-6">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition"
+          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition shadow-md"
         >
           Try Again
         </button>
@@ -234,7 +234,7 @@ const ProductsPage = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          {category ? `${category.charAt(0).toUpperCase() + category.slice(1)} Products` : 'All Products'}
+          🇵🇰 {category ? `${category.charAt(0).toUpperCase() + category.slice(1)} Products` : 'All Products'}
         </h1>
         <p className="text-gray-500 dark:text-gray-400 mt-1">
           {pagination.totalItems} products found
@@ -248,12 +248,12 @@ const ProductsPage = () => {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search products..."
-            className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition"
+            placeholder="Search biryani, nihari, BBQ..."
+            className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
           />
           <button
             type="submit"
-            className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition flex items-center gap-2"
+            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition flex items-center gap-2 shadow-md"
           >
             <FiSearch className="w-4 h-4" />
             Search
@@ -264,7 +264,7 @@ const ProductsPage = () => {
           <select
             value={sort}
             onChange={(e) => handleSortChange(e.target.value)}
-            className="px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition"
+            className="px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
           >
             <option value="popular">Popular</option>
             <option value="newest">Newest</option>
@@ -301,7 +301,7 @@ const ProductsPage = () => {
 
       {/* Products Grid */}
       {products.length === 0 ? (
-        <div className="text-center py-12">
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
           <div className="text-5xl mb-4">🔍</div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No products found</h3>
           <p className="text-gray-500 dark:text-gray-400">Try adjusting your search or filters</p>
@@ -346,7 +346,7 @@ const ProductsPage = () => {
                 onClick={() => handlePageChange(pageNum)}
                 className={`px-4 py-2 rounded-lg transition ${
                   currentPage === pageNum
-                    ? 'bg-red-600 text-white'
+                    ? 'bg-blue-600 text-white shadow-md'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
                 }`}
               >

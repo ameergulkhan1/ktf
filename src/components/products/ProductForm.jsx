@@ -1,8 +1,10 @@
+// src/components/products/ProductForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { FiUpload, FiSave, FiX } from 'react-icons/fi';
 
 const ProductForm = ({ product, isEditing = false, vendorId }) => {
   const navigate = useNavigate();
@@ -42,7 +44,6 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
         product_type: product.product_type || 'vendor',
       });
       
-      // Set image preview if product has images
       if (product.images && product.images.length > 0) {
         const primaryImage = product.images.find(img => img.is_primary) || product.images[0];
         if (primaryImage) {
@@ -64,13 +65,11 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast.error('Image size must be less than 5MB');
         return;
       }
       
-      // Validate file type
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
         toast.error('Only JPEG, PNG, GIF, and WEBP images are allowed');
@@ -90,7 +89,6 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
     setImageFile(null);
     setImagePreview(null);
     setImageUrl(null);
-    // Reset file input
     const fileInput = document.getElementById('image-upload');
     if (fileInput) fileInput.value = '';
   };
@@ -98,7 +96,6 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validation
     if (!formData.name.trim()) {
       toast.error('Product name is required');
       return;
@@ -113,14 +110,12 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
     try {
       const formDataToSend = new FormData();
       
-      // Append all fields
       Object.keys(formData).forEach(key => {
         if (formData[key] !== undefined && formData[key] !== null && formData[key] !== '') {
           formDataToSend.append(key, formData[key]);
         }
       });
       
-      // Append image if exists
       if (imageFile) {
         formDataToSend.append('image', imageFile);
       }
@@ -136,14 +131,14 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
             },
           }
         );
-        toast.success('Product updated successfully!');
+        toast.success('Product updated successfully! 🎉');
       } else {
         response = await axios.post('/api/products', formDataToSend, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         });
-        toast.success('Product created successfully!');
+        toast.success('Product created successfully! 🎉');
       }
 
       navigate('/vendor/products');
@@ -157,9 +152,9 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl mx-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-          {isEditing ? 'Edit Product' : 'Add New Product'}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+          {isEditing ? '✏️ Edit Product' : '🇵🇰 Add New Product'}
         </h2>
 
         {/* Image Upload */}
@@ -169,26 +164,13 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
           </label>
           <div className="flex items-center space-x-4">
             <div className="flex-1">
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg hover:border-primary transition-colors">
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
                 <div className="space-y-1 text-center">
-                  <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
-                    stroke="currentColor"
-                    fill="none"
-                    viewBox="0 0 48 48"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <FiUpload className="mx-auto h-12 w-12 text-gray-400" />
                   <div className="flex text-sm text-gray-600 dark:text-gray-400">
                     <label
                       htmlFor="image-upload"
-                      className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary"
+                      className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
                     >
                       <span>Upload a file</span>
                       <input
@@ -216,12 +198,12 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
               <img
                 src={imagePreview}
                 alt="Product preview"
-                className="h-32 w-32 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-700"
+                className="h-32 w-32 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-md"
               />
               <button
                 type="button"
                 onClick={removeImage}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors shadow-md"
               >
                 <XMarkIcon className="h-4 w-4" />
               </button>
@@ -231,16 +213,16 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
 
         {/* Product Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+          <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Product Name *
+              Product Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-primary"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               placeholder="Enter product name"
               required
             />
@@ -255,8 +237,8 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
               name="category"
               value={formData.category}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-primary"
-              placeholder="Enter category"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              placeholder="e.g., Biryani, BBQ"
             />
           </div>
 
@@ -269,14 +251,14 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
               name="sub_category"
               value={formData.sub_category}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-primary"
-              placeholder="Enter sub category"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              placeholder="e.g., Chicken Biryani"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Price ($) *
+              Price ($) <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -285,7 +267,7 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
               onChange={handleChange}
               step="0.01"
               min="0"
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-primary"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               placeholder="0.00"
               required
             />
@@ -302,7 +284,7 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
               onChange={handleChange}
               step="0.01"
               min="0"
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-primary"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               placeholder="0.00"
             />
           </div>
@@ -318,7 +300,7 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
               onChange={handleChange}
               step="0.01"
               min="0"
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-primary"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               placeholder="0.00"
             />
           </div>
@@ -333,7 +315,7 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
               value={formData.stock}
               onChange={handleChange}
               min="0"
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-primary"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               placeholder="0"
             />
           </div>
@@ -348,7 +330,7 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
               value={formData.low_stock_threshold}
               onChange={handleChange}
               min="0"
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-primary"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               placeholder="10"
             />
           </div>
@@ -364,7 +346,7 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
               onChange={handleChange}
               step="0.01"
               min="0"
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-primary"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               placeholder="0.00"
             />
           </div>
@@ -377,7 +359,7 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
               name="weight_unit"
               value={formData.weight_unit}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-primary"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
             >
               <option value="kg">Kilogram (kg)</option>
               <option value="g">Gram (g)</option>
@@ -395,25 +377,26 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
               value={formData.description}
               onChange={handleChange}
               rows="4"
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-primary"
-              placeholder="Enter product description"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              placeholder="Describe your delicious desi product..."
             />
           </div>
         </div>
 
         {/* Submit Buttons */}
-        <div className="flex justify-end space-x-4 mt-6">
+        <div className="flex flex-wrap justify-end gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
           <button
             type="button"
             onClick={() => navigate('/vendor/products')}
-            className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="px-6 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2"
           >
+            <FiX className="w-4 h-4" />
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md hover:shadow-lg"
           >
             {loading ? (
               <>
@@ -424,7 +407,10 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
                 <span>Saving...</span>
               </>
             ) : (
-              <span>{isEditing ? 'Update Product' : 'Create Product'}</span>
+              <>
+                <FiSave className="w-4 h-4" />
+                <span>{isEditing ? 'Update Product 🇵🇰' : 'Create Product 🇵🇰'}</span>
+              </>
             )}
           </button>
         </div>

@@ -28,14 +28,11 @@ const ProductDetail = () => {
   const fetchRef = useRef(null);
   const { addItem } = useCart();
 
-  // ✅ Fetch product when ID changes
   useEffect(() => {
-    // Cancel any ongoing fetch
     if (fetchRef.current) {
       fetchRef.current = null;
     }
 
-    // Reset state
     setProduct(null);
     setLoading(true);
     setError(null);
@@ -69,7 +66,6 @@ const ProductDetail = () => {
       }
     };
 
-    // Small delay to ensure state reset
     const timer = setTimeout(() => {
       if (id) {
         fetchProduct();
@@ -93,7 +89,6 @@ const ProductDetail = () => {
     }
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -115,7 +110,6 @@ const ProductDetail = () => {
     );
   }
 
-  // Error state
   if (error || !product) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -123,13 +117,13 @@ const ProductDetail = () => {
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Product Not Found</h2>
         <p className="text-gray-500 dark:text-gray-400 mb-6">{error || 'The product you\'re looking for doesn\'t exist.'}</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link to="/products" className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition inline-flex items-center gap-2">
+          <Link to="/products" className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition inline-flex items-center gap-2 shadow-md">
             <FiChevronLeft className="w-4 h-4" />
             Back to Products
           </Link>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-2.5 border border-gray-300 hover:border-red-600 text-gray-700 hover:text-red-600 rounded-xl transition"
+            className="px-6 py-2.5 border border-gray-300 hover:border-blue-600 text-gray-700 hover:text-blue-600 rounded-xl transition"
           >
             Try Again
           </button>
@@ -153,9 +147,9 @@ const ProductDetail = () => {
     <div className="container mx-auto px-4 py-8">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
-        <Link to="/" className="hover:text-red-600 transition">Home</Link>
+        <Link to="/" className="hover:text-blue-600 transition">Home 🇵🇰</Link>
         <span>/</span>
-        <Link to="/products" className="hover:text-red-600 transition">Products</Link>
+        <Link to="/products" className="hover:text-blue-600 transition">Products</Link>
         <span>/</span>
         <span className="text-gray-900 dark:text-white truncate max-w-[200px]">{name}</span>
       </nav>
@@ -163,7 +157,7 @@ const ProductDetail = () => {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Product Images */}
         <div className="lg:w-1/2">
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden h-96">
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden h-96 border border-gray-200 dark:border-gray-700">
             {image ? (
               <img
                 src={image}
@@ -173,7 +167,7 @@ const ProductDetail = () => {
                 onError={(e) => { e.target.style.display = 'none'; }}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-red-500 to-red-700 text-white">
+              <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-blue-500 to-blue-700 text-white">
                 📦
               </div>
             )}
@@ -183,14 +177,14 @@ const ProductDetail = () => {
         {/* Product Details */}
         <div className="lg:w-1/2 space-y-6">
           {category && (
-            <span className="inline-block px-3 py-1 bg-gray-100 dark:bg-gray-700 text-sm text-gray-600 dark:text-gray-400 rounded-full">
+            <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm rounded-full">
               {category}
             </span>
           )}
 
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{name}</h1>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-1">
               <FiStar className="w-5 h-5 text-yellow-400 fill-yellow-400" />
               <span className="font-semibold text-gray-900 dark:text-white">
@@ -200,13 +194,13 @@ const ProductDetail = () => {
             <span className="text-gray-400">|</span>
             <span className="text-gray-500 dark:text-gray-400">{reviews} reviews</span>
             <span className="text-gray-400">|</span>
-            <span className={`text-sm font-medium ${inStock ? 'text-green-600' : 'text-red-600'}`}>
+            <span className={`text-sm font-medium ${inStock ? 'text-emerald-600' : 'text-red-600'}`}>
               {inStock ? `✓ In Stock (${stock} available)` : '✗ Out of Stock'}
             </span>
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="text-3xl font-bold text-gray-900 dark:text-white">
+            <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">
               ${price.toFixed(2)}
             </span>
             {originalPrice > 0 && (
@@ -224,17 +218,17 @@ const ProductDetail = () => {
 
           <div className="flex items-center gap-4">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Quantity:</label>
-            <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg">
+            <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition rounded-l-lg"
+                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
               >
                 -
               </button>
-              <span className="px-6 py-2 text-center min-w-[50px]">{quantity}</span>
+              <span className="px-6 py-2 text-center min-w-[50px] text-gray-900 dark:text-white">{quantity}</span>
               <button
                 onClick={() => setQuantity(Math.min(stock, quantity + 1))}
-                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition rounded-r-lg"
+                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                 disabled={!inStock}
               >
                 +
@@ -246,10 +240,10 @@ const ProductDetail = () => {
             <button
               onClick={handleAddToCart}
               disabled={!inStock}
-              className="flex-1 px-8 py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white rounded-xl transition flex items-center justify-center gap-2 font-semibold"
+              className="flex-1 px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-xl transition flex items-center justify-center gap-2 font-semibold shadow-md hover:shadow-lg"
             >
               <FiShoppingCart className="w-5 h-5" />
-              {inStock ? 'Add to Cart' : 'Out of Stock'}
+              {inStock ? 'Add to Cart 🇵🇰' : 'Out of Stock'}
             </button>
             <button className="px-6 py-3 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition flex items-center gap-2">
               <FiHeart className="w-5 h-5" />
@@ -263,21 +257,21 @@ const ProductDetail = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
-              <FiTruck className="w-5 h-5 text-red-500" />
+              <FiTruck className="w-5 h-5 text-blue-500" />
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">Free Delivery</p>
                 <p className="text-sm">On orders over $50</p>
               </div>
             </div>
             <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
-              <FiClock className="w-5 h-5 text-red-500" />
+              <FiClock className="w-5 h-5 text-blue-500" />
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">Fast Delivery</p>
                 <p className="text-sm">2-4 business days</p>
               </div>
             </div>
             <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
-              <FiShield className="w-5 h-5 text-red-500" />
+              <FiShield className="w-5 h-5 text-blue-500" />
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">Secure Payment</p>
                 <p className="text-sm">100% secure checkout</p>

@@ -54,7 +54,7 @@ const BlogSection = () => {
           </div>
           <Link
             to="/blog"
-            className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium flex items-center gap-1"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium flex items-center gap-1"
           >
             View All Posts
             <FiArrowRight className="w-4 h-4" />
@@ -89,7 +89,7 @@ const BlogSection = () => {
                     {post.author}
                   </span>
                 </div>
-                <span className="text-xs font-semibold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-3 py-1 rounded-full">
+                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
                   {post.category}
                 </span>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-2 mb-3 line-clamp-2">
@@ -100,7 +100,7 @@ const BlogSection = () => {
                 </p>
                 <Link
                   to={`/blog/${post.id}`}
-                  className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium inline-flex items-center gap-1"
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium inline-flex items-center gap-1"
                 >
                   Read More
                   <FiArrowRight className="w-4 h-4" />

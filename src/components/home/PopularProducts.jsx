@@ -91,7 +91,7 @@ const ProductCard = ({ product, user }) => {
             onError={(e) => { e.target.style.display = 'none'; }}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
             <span className="text-6xl opacity-50">📦</span>
           </div>
         )}
@@ -104,7 +104,7 @@ const ProductCard = ({ product, user }) => {
         </button>
 
         {discount > 0 && (
-          <div className="absolute top-3 left-3 z-10 bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">
+          <div className="absolute top-3 left-3 z-10 bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">
             -{discount}%
           </div>
         )}
@@ -119,7 +119,7 @@ const ProductCard = ({ product, user }) => {
 
       <div className="p-5">
         <div className="mb-2">
-          <h3 className="text-base font-bold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors line-clamp-1">
+          <h3 className="text-base font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
             {name}
           </h3>
         </div>
@@ -145,7 +145,7 @@ const ProductCard = ({ product, user }) => {
 
           <button
             onClick={handleAddToCart}
-            className="p-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors shadow-md hover:shadow-lg"
+            className="p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-md hover:shadow-lg"
           >
             <FiShoppingCart className="w-4 h-4" />
           </button>
@@ -213,7 +213,6 @@ const PopularProducts = () => {
     };
   }, []);
 
-  // ✅ If we have data but loading is true, force loading to false
   if (loading && products.length > 0) {
     setLoading(false);
   }
@@ -236,7 +235,7 @@ const PopularProducts = () => {
         <p className="text-gray-500 dark:text-gray-400 mb-4">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition"
+          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition"
         >
           Try Again
         </button>
@@ -258,7 +257,7 @@ const PopularProducts = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-1 h-8 bg-red-500 rounded-full" />
+          <div className="w-1 h-8 bg-blue-500 rounded-full" />
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               🔥 Popular Products
@@ -270,7 +269,7 @@ const PopularProducts = () => {
         </div>
         <Link
           to="/products"
-          className="group flex items-center gap-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium transition-colors"
+          className="group flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
         >
           View All
           <FiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

@@ -7,19 +7,19 @@ export const authApi = {
     try {
       const response = await axiosInstance.post('/auth/login', { email, password });
       console.log('✅ Login response:', response.data);
-      return response.data; // ✅ Return the data directly
+      return response.data;
     } catch (error) {
       console.error('❌ Login error:', error);
       throw error;
     }
   },
 
-  // Admin login - POST /api/admin/login
+  // ✅ Admin login - POST /api/admin/auth/login
   adminLogin: async (email, password) => {
     try {
-      const response = await axiosInstance.post('/admin/login', { email, password });
+      const response = await axiosInstance.post('/admin/auth/login', { email, password });
       console.log('✅ Admin login response:', response.data);
-      return response.data; // ✅ Return the data directly
+      return response.data;
     } catch (error) {
       console.error('❌ Admin login error:', error);
       throw error;
@@ -42,8 +42,19 @@ export const authApi = {
     try {
       const response = await axiosInstance.post('/auth/logout');
       return response.data;
-    } catch (error) {
+    } catch (error) {  // ✅ FIXED: Added closing )
       console.error('❌ Logout error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Admin Logout - POST /api/admin/auth/logout
+  adminLogout: async () => {
+    try {
+      const response = await axiosInstance.post('/admin/auth/logout');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Admin logout error:', error);
       throw error;
     }
   },
@@ -55,6 +66,17 @@ export const authApi = {
       return response.data;
     } catch (error) {
       console.error('❌ Get profile error:', error);
+      throw error;
+    }
+  },
+
+  // ✅ Admin Verify Token - GET /api/admin/auth/verify
+  adminVerify: async () => {
+    try {
+      const response = await axiosInstance.get('/admin/auth/verify');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Admin verify error:', error);
       throw error;
     }
   },

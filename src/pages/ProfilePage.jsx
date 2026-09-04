@@ -1,7 +1,8 @@
-﻿import React, { useState } from 'react';
+﻿// src/pages/ProfilePage.jsx
+import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
-import { UserIcon, EnvelopeIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import { UserIcon, EnvelopeIcon, PencilSquareIcon, PhoneIcon, MapPinIcon } from '@heroicons/react/24/outline';
 
 const ProfilePage = () => {
   const { user, updateUser } = useAuth();
@@ -9,6 +10,8 @@ const ProfilePage = () => {
   const [formData, setFormData] = useState({
     full_name: user?.full_name || '',
     email: user?.email || '',
+    phone: user?.phone || '',
+    address: user?.address || '',
   });
 
   const handleChange = (e) => {
@@ -18,7 +21,6 @@ const ProfilePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // API call to update profile
     updateUser({ ...user, ...formData });
     setIsEditing(false);
   };
@@ -31,12 +33,15 @@ const ProfilePage = () => {
         transition={{ duration: 0.5 }}
         className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
       >
-        <div className="bg-gradient-to-r from-primary to-secondary px-6 py-8 text-center text-white">
-          <div className="w-24 h-24 mx-auto rounded-full bg-white/20 flex items-center justify-center text-4xl font-bold">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-8 text-center text-white">
+          <div className="w-24 h-24 mx-auto rounded-full bg-white/20 flex items-center justify-center text-4xl font-bold border-4 border-white/30">
             {user?.full_name?.[0]?.toUpperCase() || 'U'}
           </div>
-          <h2 className="text-2xl font-bold mt-4">{user?.full_name}</h2>
-          <p className="text-white/80">{user?.role}</p>
+          <h2 className="text-2xl font-bold mt-4">{user?.full_name || 'User'}</h2>
+          <p className="text-white/80 flex items-center justify-center gap-2">
+            <span>{user?.role || 'Customer'}</span>
+            {user?.role === 'user' && <span>🇵🇰</span>}
+          </p>
         </div>
 
         <div className="p-6">
@@ -44,7 +49,7 @@ const ProfilePage = () => {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Profile Information</h3>
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="text-primary hover:text-red-600 transition-colors"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
             >
               <PencilSquareIcon className="h-5 w-5" />
             </button>
@@ -53,44 +58,84 @@ const ProfilePage = () => {
           {isEditing ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="input-label">Full Name</label>
+                <label className="input-label text-gray-700 dark:text-gray-300">Full Name</label>
                 <input
                   type="text"
                   name="full_name"
                   value={formData.full_name}
                   onChange={handleChange}
-                  className="input-field"
+                  className="input-field w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
               <div>
-                <label className="input-label">Email</label>
+                <label className="input-label text-gray-700 dark:text-gray-300">Email</label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="input-field"
+                  className="input-field w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="input-label text-gray-700 dark:text-gray-300">Phone</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="input-field w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="+92 300 1234567"
+                />
+              </div>
+              <div>
+                <label className="input-label text-gray-700 dark:text-gray-300">Address</label>
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  className="input-field w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="Enter your delivery address"
                 />
               </div>
               <div className="flex gap-4">
-                <button type="submit" className="btn-primary flex-1">Save Changes</button>
-                <button type="button" onClick={() => setIsEditing(false)} className="btn-outline flex-1">Cancel</button>
+                <button type="submit" className="flex-1 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-md">
+                  Save Changes
+                </button>
+                <button type="button" onClick={() => setIsEditing(false)} className="flex-1 px-6 py-2.5 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition">
+                  Cancel
+                </button>
               </div>
             </form>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <UserIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                <UserIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Full Name</p>
-                  <p className="font-medium text-gray-900 dark:text-white">{user?.full_name}</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{user?.full_name || 'Not set'}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <EnvelopeIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                <EnvelopeIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
-                  <p className="font-medium text-gray-900 dark:text-white">{user?.email}</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{user?.email || 'Not set'}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                <PhoneIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Phone</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{user?.phone || 'Not set'}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                <MapPinIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Address</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{user?.address || 'Not set'}</p>
                 </div>
               </div>
             </div>

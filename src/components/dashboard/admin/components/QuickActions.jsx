@@ -4,12 +4,12 @@ import { Link } from 'react-router-dom';
 
 const QuickActions = ({ className }) => {
   const actions = [
-    { label: 'Manage Users', icon: '👥', path: '/admin/users' },
-    { label: 'Approve Vendors', icon: '✅', path: '/admin/vendors' },
-    { label: 'View Orders', icon: '📦', path: '/admin/orders' },
-    { label: 'Commission Reports', icon: '💰', path: '/admin/commissions' },
-    { label: 'View Reports', icon: '📊', path: '/admin/reports' },
-    { label: 'Settings', icon: '⚙️', path: '/admin/settings' }
+    { label: 'Dashboard', icon: '📊', path: '/admin/dashboard' },
+    { label: 'Users', icon: '👥', path: '/admin/users' },
+    { label: 'Vendors', icon: '✅', path: '/admin/vendors' },
+    { label: 'Restaurants', icon: '🍽️', path: '/admin/restaurants' },
+    { label: 'Orders', icon: '📦', path: '/admin/orders' },
+    { label: 'Commissions', icon: '💰', path: '/admin/commissions' }
   ];
 
   return (

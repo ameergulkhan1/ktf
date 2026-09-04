@@ -3,21 +3,29 @@ import axiosInstance from './axiosConfig';
 
 const API_URL = '/vendors';
 
-// ============================================
-// VENDOR API - Complete
-// ============================================
 const vendorApi = {
   // ============================================
   // PROFILE
   // ============================================
   getProfile: async () => {
     try {
-      const response = await axiosInstance.get(API_URL + '/profile');
+      const response = await axiosInstance.get(`${API_URL}/profile`);
       console.log('📥 Vendor profile response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching vendor profile:', error);
+      // Return empty data on error
       return { success: true, vendor: null };
+    }
+  },
+
+  updateProfile: async (data) => {
+    try {
+      const response = await axiosInstance.put(`${API_URL}/profile`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating vendor profile:', error);
+      throw error;
     }
   },
 
@@ -26,7 +34,7 @@ const vendorApi = {
   // ============================================
   getRestaurant: async () => {
     try {
-      const response = await axiosInstance.get(API_URL + '/restaurant');
+      const response = await axiosInstance.get(`${API_URL}/restaurant`);
       console.log('📥 Get restaurant response:', response.data);
       return response.data;
     } catch (error) {
@@ -68,7 +76,7 @@ const vendorApi = {
       };
 
       console.log('📤 Saving restaurant with payload:', payload);
-      const response = await axiosInstance.post(API_URL + '/restaurant', payload);
+      const response = await axiosInstance.post(`${API_URL}/restaurant`, payload);
       console.log('📥 Save restaurant response:', response.data);
       return response.data;
     } catch (error) {
@@ -102,7 +110,7 @@ const vendorApi = {
         opening_hours: data.opening_hours || {}
       };
 
-      const response = await axiosInstance.put(API_URL + '/restaurant', payload);
+      const response = await axiosInstance.put(`${API_URL}/restaurant`, payload);
       return response.data;
     } catch (error) {
       console.error('❌ Error updating restaurant:', error);
@@ -112,7 +120,7 @@ const vendorApi = {
 
   deleteRestaurant: async () => {
     try {
-      const response = await axiosInstance.delete(API_URL + '/restaurant');
+      const response = await axiosInstance.delete(`${API_URL}/restaurant`);
       return response.data;
     } catch (error) {
       console.error('❌ Error deleting restaurant:', error);
@@ -125,7 +133,7 @@ const vendorApi = {
   // ============================================
   getMenu: async () => {
     try {
-      const response = await axiosInstance.get(API_URL + '/menu');
+      const response = await axiosInstance.get(`${API_URL}/menu`);
       console.log('📥 Get menu response:', response.data);
       return response.data;
     } catch (error) {
@@ -158,7 +166,7 @@ const vendorApi = {
       };
 
       console.log('📤 Adding menu item with payload:', payload);
-      const response = await axiosInstance.post(API_URL + '/menu', payload);
+      const response = await axiosInstance.post(`${API_URL}/menu`, payload);
       console.log('📥 Add menu item response:', response.data);
       return response.data;
     } catch (error) {
@@ -187,7 +195,7 @@ const vendorApi = {
         image_url: (data.image_url || '').trim()
       };
 
-      const response = await axiosInstance.put(API_URL + '/menu/' + id, payload);
+      const response = await axiosInstance.put(`${API_URL}/menu/${id}`, payload);
       return response.data;
     } catch (error) {
       console.error('❌ Error updating menu item:', error);
@@ -197,7 +205,7 @@ const vendorApi = {
 
   deleteMenuItem: async (id) => {
     try {
-      const response = await axiosInstance.delete(API_URL + '/menu/' + id);
+      const response = await axiosInstance.delete(`${API_URL}/menu/${id}`);
       return response.data;
     } catch (error) {
       console.error('❌ Error deleting menu item:', error);
@@ -210,7 +218,7 @@ const vendorApi = {
   // ============================================
   getProducts: async (params) => {
     try {
-      const response = await axiosInstance.get(API_URL + '/products', { params });
+      const response = await axiosInstance.get(`${API_URL}/products`, { params });
       console.log('📥 Vendor products response:', response.data);
       return response.data;
     } catch (error) {
@@ -247,7 +255,7 @@ const vendorApi = {
       };
 
       console.log('📤 Creating product with payload:', payload);
-      const response = await axiosInstance.post(API_URL + '/products', payload);
+      const response = await axiosInstance.post(`${API_URL}/products`, payload);
       console.log('📥 Create product response:', response.data);
       return response.data;
     } catch (error) {
@@ -279,7 +287,7 @@ const vendorApi = {
         is_featured: productData.is_featured || false
       };
 
-      const response = await axiosInstance.put('/products/' + id, payload);
+      const response = await axiosInstance.put(`/products/${id}`, payload);
       return response.data;
     } catch (error) {
       console.error('❌ Error updating product:', error);
@@ -289,7 +297,7 @@ const vendorApi = {
 
   deleteProduct: async (id) => {
     try {
-      const response = await axiosInstance.delete('/products/' + id);
+      const response = await axiosInstance.delete(`/products/${id}`);
       return response.data;
     } catch (error) {
       console.error('❌ Error deleting product:', error);
@@ -302,7 +310,7 @@ const vendorApi = {
   // ============================================
   getOrders: async (params) => {
     try {
-      const response = await axiosInstance.get(API_URL + '/orders', { params });
+      const response = await axiosInstance.get(`${API_URL}/orders`, { params });
       return response.data;
     } catch (error) {
       console.error('Error fetching vendor orders:', error);
@@ -312,12 +320,11 @@ const vendorApi = {
 
   updateOrderStatus: async (orderId, statusData) => {
     try {
-      // statusData can be either a string (status) or an object with status + shipper details
       const payload = typeof statusData === 'string' 
         ? { status: statusData } 
         : statusData;
       
-      const response = await axiosInstance.put(API_URL + '/orders/' + orderId + '/status', payload);
+      const response = await axiosInstance.put(`${API_URL}/orders/${orderId}/status`, payload);
       return response.data;
     } catch (error) {
       console.error('❌ Error updating order status:', error);
@@ -330,7 +337,7 @@ const vendorApi = {
   // ============================================
   getEarnings: async (params) => {
     try {
-      const response = await axiosInstance.get(API_URL + '/earnings', { params });
+      const response = await axiosInstance.get(`${API_URL}/earnings`, { params });
       return response.data;
     } catch (error) {
       console.error('Error fetching vendor earnings:', error);
@@ -340,7 +347,7 @@ const vendorApi = {
 
   getWallet: async () => {
     try {
-      const response = await axiosInstance.get(API_URL + '/wallet');
+      const response = await axiosInstance.get(`${API_URL}/wallet`);
       return response.data;
     } catch (error) {
       console.error('Error fetching vendor wallet:', error);
@@ -356,7 +363,7 @@ const vendorApi = {
         notes: (data.notes || '').trim()
       };
 
-      const response = await axiosInstance.post(API_URL + '/withdraw', payload);
+      const response = await axiosInstance.post(`${API_URL}/withdraw`, payload);
       return response.data;
     } catch (error) {
       console.error('❌ Error withdrawing funds:', error);
@@ -369,7 +376,7 @@ const vendorApi = {
   // ============================================
   getStatistics: async (params) => {
     try {
-      const response = await axiosInstance.get(API_URL + '/statistics', { params });
+      const response = await axiosInstance.get(`${API_URL}/statistics`, { params });
       return response.data;
     } catch (error) {
       console.error('Error fetching statistics:', error);
@@ -378,8 +385,5 @@ const vendorApi = {
   }
 };
 
-// ============================================
-// EXPORT - BOTH named and default
-// ============================================
 export { vendorApi };
 export default vendorApi;
