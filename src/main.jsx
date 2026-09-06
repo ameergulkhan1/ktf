@@ -9,6 +9,47 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ThemeProvider } from './context/ThemeContext';
 
+// ============================================
+// ✅ DISABLE ALL CONSOLE LOGS IN PRODUCTION
+// ============================================
+if (import.meta.env.PROD) {
+  // Store reference to original console (optional)
+  const originalConsole = { ...console };
+  
+  // Override all console methods with empty functions
+  console.log = () => {};
+  console.info = () => {};
+  console.warn = () => {};
+  console.error = () => {};
+  console.debug = () => {};
+  console.table = () => {};
+  console.group = () => {};
+  console.groupEnd = () => {};
+  console.time = () => {};
+  console.timeEnd = () => {};
+  console.count = () => {};
+  console.trace = () => {};
+  console.assert = () => {};
+  console.dir = () => {};
+  console.dirxml = () => {};
+  console.groupCollapsed = () => {};
+  
+  // ✅ Keep only essential errors (optional)
+  // console.error = originalConsole.error; // Uncomment to keep errors
+  
+  // ✅ Disable React DevTools in production
+  if (window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
+    window.__REACT_DEVTOOLS_GLOBAL_HOOK__.inject = () => {};
+    window.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberRoot = () => {};
+    window.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberUnmount = () => {};
+  }
+}
+
+// ============================================
+// ✅ REMOVE REACT QUERY DEVTOOLS IN PRODUCTION
+// ============================================
+const shouldShowDevtools = !import.meta.env.PROD;
+
 // Initialize React Query client
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,6 +61,25 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// ============================================
+// ✅ HANDLE UNCAUGHT ERRORS GRACEFULLY
+// ============================================
+if (import.meta.env.PROD) {
+  // Prevent default error logging
+  window.addEventListener('error', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return true;
+  });
+  
+  // Prevent unhandled promise rejections from showing
+  window.addEventListener('unhandledrejection', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return true;
+  });
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -33,7 +93,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>
-      <ReactQueryDevtools initialIsOpen={false} />
+      {shouldShowDevtools && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   </React.StrictMode>
 );

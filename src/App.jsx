@@ -26,7 +26,6 @@ const OrdersPage = lazy(() => import('./pages/OrdersPage'));
 const OrderDetail = lazy(() => import('./components/orders/OrderDetail'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const WishlistPage = lazy(() => import('./pages/WishlistPage'));
-
 // ✅ ADMIN PAGES
 const AdminLogin = lazy(() => import('./components/auth/AdminLogin'));
 const AdminDashboard = lazy(() => import('./components/dashboard/admin/AdminDashboard'));
@@ -34,12 +33,12 @@ const UserManagement = lazy(() => import('./components/dashboard/admin/UserManag
 const VendorApproval = lazy(() => import('./components/dashboard/admin/VendorApproval'));
 const RestaurantApproval = lazy(() => import('./components/dashboard/admin/RestaurantApproval'));
 const ProductApproval = lazy(() => import('./components/dashboard/admin/ProductApproval'));
+const OrdersManagement = lazy(() => import('./components/dashboard/admin/OrdersManagement'));  // ✅ ADD THIS
 const CommissionManagement = lazy(() => import('./components/dashboard/admin/CommissionManagement'));
 const Reports = lazy(() => import('./components/dashboard/admin/Reports'));
 const Settings = lazy(() => import('./components/dashboard/admin/Settings'));
 const Analytics = lazy(() => import('./components/dashboard/admin/Analytics'));
 const ActivityLogs = lazy(() => import('./components/dashboard/admin/ActivityLogs'));
-
 // ✅ VENDOR PAGES
 const VendorDashboard = lazy(() => import('./components/dashboard/vendor/VendorDashboard'));
 const ManageRestaurant = lazy(() => import('./components/dashboard/vendor/ManageRestaurant'));
@@ -72,7 +71,8 @@ function App() {
             <CartProvider>
               <Routes>
               {/* ============================================
-                  ADMIN ROUTES - No CartProvider
+                 {/* ============================================ 
+              ADMIN ROUTES - No CartProvider
               ============================================ */}
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
@@ -80,13 +80,13 @@ function App() {
               <Route path="/admin/vendors" element={<VendorApproval />} />
               <Route path="/admin/restaurants" element={<RestaurantApproval />} />
               <Route path="/admin/products" element={<ProductApproval />} />
+              <Route path="/admin/orders" element={<OrdersManagement />} />
               <Route path="/admin/commissions" element={<CommissionManagement />} />
               <Route path="/admin/reports" element={<Reports />} />
               <Route path="/admin/settings" element={<Settings />} />
               <Route path="/admin/analytics" element={<Analytics />} />
               <Route path="/admin/activity-logs" element={<ActivityLogs />} />
               <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-
               {/* ============================================
                   VENDOR ROUTES - No CartProvider
               ============================================ */}
