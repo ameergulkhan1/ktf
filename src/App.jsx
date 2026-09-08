@@ -26,6 +26,10 @@ const OrdersPage = lazy(() => import('./pages/OrdersPage'));
 const OrderDetail = lazy(() => import('./components/orders/OrderDetail'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const WishlistPage = lazy(() => import('./pages/WishlistPage'));
+// src/pages/NotificationsPage.jsx existed but was never routed, so the
+// "View all notifications" link in the navbar dropdown dropped the user on the
+// home page via the catch-all route.
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 // ✅ ADMIN PAGES
 const AdminLogin = lazy(() => import('./components/auth/AdminLogin'));
 const AdminDashboard = lazy(() => import('./components/dashboard/admin/AdminDashboard'));
@@ -128,6 +132,7 @@ function App() {
                   <Route path="/orders/:id" element={<OrderDetail />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/wishlist" element={<WishlistPage />} />
+                  <Route path="/notifications" element={<NotificationsPage />} />
                 </Route>
               </Route>
 

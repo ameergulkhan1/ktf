@@ -91,7 +91,9 @@ const OrdersPage = () => {
               
               <div className="mt-4 flex flex-wrap items-center gap-4">
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {order.items?.length || 0} items
+                  {/* The orders list endpoint returns a SQL item_count, not a nested
+                      items array, so items?.length alone always rendered "0 items". */}
+                  {order.items?.length ?? Number(order.item_count ?? 0)} items
                 </p>
                 <p className="text-lg font-bold text-gray-800 dark:text-white">
                   Rs. {parseFloat(order.total || 0).toFixed(2)}

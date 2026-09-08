@@ -5,7 +5,7 @@ import { useAuth } from './useAuth';
 import toast from 'react-hot-toast';
 
 export const useCart = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -78,7 +78,24 @@ export const useCart = () => {
   // ✅ Initial fetch - only once
   useEffect(() => {
     mounted.current = true;
-    
+
+    // AuthContext hydrates `user` from localStorage inside its own effect, and child
+    // effects run before parent ones, so on a hard page load this ran once with
+    // user === null. The `else` branch below then announced an empty, finished cart --
+    // loading false, items [] -- and anything guarding on "cart is empty" acted on it.
+    // /checkout did exactly that and bounced the customer back to /cart with their
+    // items still in it. While auth is hydrating there is simply nothing to say yet,
+    // so stay in the loading state and wait for the re-run.
+    if (authLoading) {
+      return () => {
+        mounted.current = false;
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+          fetchTimeoutRef.current = null;
+        }
+      };
+    }
+
     // ✅ Only fetch if user exists and we haven't fetched yet
     if (user?.id && !fetchedRef.current) {
       fetchedRef.current = true;
@@ -100,7 +117,7 @@ export const useCart = () => {
         fetchTimeoutRef.current = null;
       }
     };
-  }, [user?.id]); // ✅ Only depend on user?.id
+  }, [user?.id, authLoading]);
 
   // ✅ Add item to cart
   const addItem = useCallback(async (productId, quantity = 1, price = 0, name = 'Product', menuItemId = null) => {

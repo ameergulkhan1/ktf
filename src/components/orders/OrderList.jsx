@@ -59,7 +59,9 @@ const OrderList = ({ vendorMode = false }) => {
                     {order.status || 'Pending'}
                   </span>
                   <span className="text-sm text-gray-500 dark:text-gray-400">
-                    {order.items?.length || 0} items
+                    {/* The list endpoint returns a SQL item_count rather than a nested
+                        items array, so reading items?.length alone always showed 0. */}
+                    {order.items?.length ?? Number(order.item_count ?? 0)} items
                   </span>
                   <span className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium">
                     View Details →

@@ -22,12 +22,32 @@ const safeString = (value, fallback = '') => {
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { items, total, count, clearCart, fetchCart } = useCart();
+  // authLoading matters as much as the cart's own flag: on a hard load of /checkout,
+  // AuthContext hydrates `user` from localStorage in an effect, and until it does
+  // useCart's fetchCart sees no user, returns an empty cart and clears its loading
+  // flag. Without waiting for auth the guard below saw an "empty" cart and bounced
+  // the customer back to /cart even though the cart had items.
+  const { user, loading: authLoading } = useAuth();
+  // cartLoading is the cart's own fetch flag. The guard below used to read the local
+  // `loading` state instead, which is the order-submission flag and starts false, so on
+  // a fresh load of /checkout the cart was still empty and the page bounced straight
+  // back to /cart with "Your cart is empty" before fetchCart() had returned.
+  const { items, total, count, clearCart, fetchCart, loading: cartLoading } = useCart();
   
   const cartItems = Array.isArray(items) ? items : [];
   const cartTotal = safeNumber(total) || cartItems.reduce((sum, item) => sum + (safeNumber(item.price) * safeNumber(item.quantity)), 0);
   const itemCount = safeNumber(count) || cartItems.length;
+
+  // One source of truth for the money. The order summary rendered a delivery fee of
+  // "Free" above 50 and 5.00 otherwise, while the payload posted to /api/orders added a
+  // flat 2.99 -- so the customer was always charged a different amount from the total
+  // they had just agreed to (2.99 more on a free-delivery order). Both now read these.
+  const DELIVERY_FEE_THRESHOLD = 50;
+  const DELIVERY_FEE = 5;
+  const TAX_RATE = 0.1;
+  const deliveryFee = cartTotal > DELIVERY_FEE_THRESHOLD ? 0 : DELIVERY_FEE;
+  const taxAmount = cartTotal * TAX_RATE;
+  const grandTotal = cartTotal + deliveryFee + taxAmount;
   
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -49,9 +69,12 @@ const Checkout = () => {
   });
 
   useEffect(() => {
+    // Re-run once the user is known: the original mount-only effect fired while
+    // AuthContext was still hydrating, so it fetched an empty cart and never retried.
+    if (authLoading) return;
     fetchCart();
     fetchPaymentMethods();
-  }, []);
+  }, [authLoading, user?.id]);
 
   const fetchPaymentMethods = async () => {
     try {
@@ -68,11 +91,11 @@ const Checkout = () => {
   };
 
   useEffect(() => {
-    if (!loading && cartItems.length === 0 && !orderPlaced) {
+    if (!authLoading && !cartLoading && !loading && cartItems.length === 0 && !orderPlaced) {
       toast.error('Your cart is empty');
       navigate('/cart');
     }
-  }, [cartItems.length, navigate, loading, orderPlaced]);
+  }, [cartItems.length, navigate, authLoading, cartLoading, loading, orderPlaced]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -108,7 +131,10 @@ const Checkout = () => {
           quantity: item.quantity || 1,
           price: safeNumber(item.price)
         })),
-        total: safeNumber(cartTotal) + 2.99 + safeNumber(cartTotal) * 0.1,
+        total: safeNumber(grandTotal),
+        subtotal: safeNumber(cartTotal),
+        delivery_fee: safeNumber(deliveryFee),
+        tax: safeNumber(taxAmount),
         delivery_address: deliveryAddress,
         house_no: formData.house_no,
         street: formData.street,
@@ -180,7 +206,7 @@ const Checkout = () => {
     );
   }
 
-  if (cartItems.length === 0 && !loading) {
+  if (cartItems.length === 0 && !loading && !cartLoading && !authLoading) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <div className="max-w-md mx-auto">
@@ -245,16 +271,16 @@ const Checkout = () => {
                 </div>
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Delivery Fee</span>
-                  <span>{cartTotal > 50 ? 'Free' : '$5.00'}</span>
+                  <span>{deliveryFee === 0 ? 'Free' : `$${deliveryFee.toFixed(2)}`}</span>
                 </div>
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Tax (10%)</span>
-                  <span>${(cartTotal * 0.1).toFixed(2)}</span>
+                  <span>${taxAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-gray-700">
                   <span>Total</span>
                   <span className="text-blue-600">
-                    ${(cartTotal + (cartTotal > 50 ? 0 : 5) + (cartTotal * 0.1)).toFixed(2)}
+                    ${grandTotal.toFixed(2)}
                   </span>
                 </div>
               </div>
