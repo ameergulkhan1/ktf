@@ -95,7 +95,7 @@ const NotificationDropdown = () => {
                 <div
                   key={notification.id}
                   className={`p-4 border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer ${
-                    !notification.is_read ? 'bg-blue-50' : ''
+                    !notification.is_read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                   }`}
                 >
                   <div className="flex gap-3">
@@ -103,7 +103,7 @@ const NotificationDropdown = () => {
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
                         <h4 className={`font-semibold text-sm ${
-                          !notification.is_read ? 'text-blue-900' : 'text-gray-900'
+                          !notification.is_read ? 'text-blue-900 dark:text-blue-300' : 'text-gray-900'
                         }`}>
                           {notification.title}
                         </h4>

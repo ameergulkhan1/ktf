@@ -12,11 +12,8 @@ import {
   FiCheckCircle,
   FiXCircle,
   FiAlertCircle,
-  FiLogOut,
   FiRefreshCw,
-  FiHome,
   FiSettings,
-  FiBell,
   FiUser,
   FiStar,
   FiThumbsUp,
@@ -33,9 +30,10 @@ import OrdersChart from './components/OrdersChart';
 import RecentActivity from './components/RecentActivity';
 import QuickActions from './components/QuickActions';
 import TopVendors from './components/TopVendors';
+import { formatPrice } from '../../../utils/format';
 
 const AdminDashboard = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -52,24 +50,14 @@ const AdminDashboard = () => {
     revenueByMonth: []
   });
 
-  // Check if user is admin
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
-    if (user?.role !== 'admin') {
-      navigate('/');
-      return;
-    }
-  }, [isAuthenticated, user, navigate]);
+  // PanelLayout already guarantees an authenticated admin before this renders.
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
 
   useEffect(() => {
-    if (isAuthenticated && user?.role === 'admin') {
+    if (isAuthenticated && isAdmin) {
       fetchDashboardData();
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, isAdmin]);
 
   const fetchDashboardData = async (showLoading = true) => {
     try {
@@ -115,7 +103,8 @@ const AdminDashboard = () => {
           revenueByMonth: data.revenueByMonth || []
         });
         setLastUpdated(new Date());
-        toast.success('Dashboard updated successfully');
+        // Only confirm a manual refresh; a toast on every page load is just noise.
+        if (!showLoading) toast.success('Dashboard updated');
       } else {
         setError(response.data.message || 'Failed to load dashboard');
         toast.error(response.data.message || 'Failed to load dashboard');
@@ -130,24 +119,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast.success('Logged out successfully');
-      navigate('/login');
-    } catch (error) {
-      toast.error('Failed to logout');
-    }
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-PK', {
-      style: 'currency',
-      currency: 'PKR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount || 0);
-  };
+  const formatCurrency = formatPrice;
 
   const formatDate = (date) => {
     return new Date(date).toLocaleString('en-PK', {
@@ -161,18 +133,18 @@ const AdminDashboard = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      'pending': 'bg-yellow-100 text-yellow-800',
-      'processing': 'bg-blue-100 text-blue-800',
-      'shipped': 'bg-purple-100 text-purple-800',
-      'delivered': 'bg-green-100 text-green-800',
-      'cancelled': 'bg-red-100 text-red-800',
+      'pending': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+      'processing': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+      'shipped': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+      'delivered': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+      'cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
       'refunded': 'bg-gray-100 text-gray-800'
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
   // If not admin, show access denied
-  if (!isAuthenticated || user?.role !== 'admin') {
+  if (!isAuthenticated || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md">
@@ -194,7 +166,7 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-400">Loading dashboard...</p>
@@ -204,79 +176,31 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Top Navigation Bar */}
-      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Left Side - Logo & Title */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
-                  <FiHome className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Admin Panel</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Side - Actions */}
-            <div className="flex items-center space-x-4">
-              {/* Last Updated */}
-              <div className="hidden md:flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-                <FiClock className="w-4 h-4" />
-                <span>Updated: {formatDate(lastUpdated)}</span>
-              </div>
-
-              {/* Refresh Button */}
-              <button
-                onClick={() => fetchDashboardData(false)}
-                disabled={refreshing}
-                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition disabled:opacity-50"
-                title="Refresh Dashboard"
-              >
-                <FiRefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
-              </button>
-
-              {/* Notifications */}
-              <button className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition relative">
-                <FiBell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-
-              {/* User Profile */}
-              <div className="flex items-center space-x-3 border-l border-gray-200 dark:border-gray-700 pl-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    {user?.full_name?.charAt(0) || 'A'}
-                  </div>
-                  <div className="hidden md:block">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.full_name || 'Admin'}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email || 'admin@example.com'}</p>
-                  </div>
-                </div>
-                
-                {/* Logout Button */}
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 rounded-lg transition"
-                >
-                  <FiLogOut className="w-4 h-4" />
-                  <span className="hidden md:inline">Logout</span>
-                </button>
-              </div>
-            </div>
-          </div>
+    <div>
+      {/* Page header. Navigation, profile and logout live in PanelLayout. */}
+      <div className="px-4 sm:px-6 lg:px-8 pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5 mt-1">
+            <FiClock className="w-4 h-4" />
+            Updated {formatDate(lastUpdated)}
+          </p>
         </div>
-      </nav>
+        <button
+          onClick={() => fetchDashboardData(false)}
+          disabled={refreshing}
+          className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+        >
+          <FiRefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
+      </div>
 
       {/* Main Content */}
       <main className="px-4 sm:px-6 lg:px-8 py-6">
         {/* Welcome Section */}
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             Welcome back, <span className="text-blue-600 dark:text-blue-400">{user?.full_name || 'Admin'}</span>! 👋
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -285,7 +209,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Cards Row 1 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-6">
           <StatsCard
             title="Total Revenue"
             value={formatCurrency(stats.revenue.total)}
@@ -297,7 +221,6 @@ const AdminDashboard = () => {
           <StatsCard
             title="Total Orders"
             value={stats.orders.total.toLocaleString()}
-            change={12}
             icon={<FiShoppingBag className="w-6 h-6" />}
             color="green"
             subtitle={`Pending: ${stats.orders.pending}`}
@@ -305,7 +228,6 @@ const AdminDashboard = () => {
           <StatsCard
             title="Total Users"
             value={stats.users.total.toLocaleString()}
-            change={8}
             icon={<FiUsers className="w-6 h-6" />}
             color="purple"
             subtitle={`Active: ${stats.users.active}`}
@@ -313,7 +235,6 @@ const AdminDashboard = () => {
           <StatsCard
             title="Total Vendors"
             value={stats.vendors.total.toLocaleString()}
-            change={5}
             icon={<FiStar className="w-6 h-6" />}
             color="orange"
             subtitle={`Pending: ${stats.vendors.pending}`}
@@ -321,7 +242,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Quick Metrics Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 mb-6">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-yellow-500 hover:shadow-md transition">
             <p className="text-sm text-gray-500 dark:text-gray-400">Pending Vendors</p>
             <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.vendors.pending}</p>

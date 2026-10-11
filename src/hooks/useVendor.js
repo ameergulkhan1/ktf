@@ -145,11 +145,19 @@ export const useVendor = () => {
     };
 
     // ✅ Start loading immediately with a small delay for token
-    const timer = setTimeout(loadData, 50);
+    let started = false;
+    const timer = setTimeout(() => {
+      started = true;
+      loadData();
+    }, 50);
 
     return () => {
       mounted.current = false;
       clearTimeout(timer);
+      // If this effect is torn down before the load began (React StrictMode's mount/unmount/
+      // mount, or a dependency change), let the next run start it. Otherwise fetchedRef
+      // stayed true with nothing in flight and the page spun on "Loading..." forever.
+      if (!started) fetchedRef.current = false;
     };
   }, [isAuthenticated, user, authLoading, fetchProfile, fetchProducts, fetchOrders, fetchEarnings, fetchWallet]);
 

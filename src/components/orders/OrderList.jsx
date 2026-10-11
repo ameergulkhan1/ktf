@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useOrders } from '../../hooks/useOrders';
 import Loader from '../common/Loader';
 import { format } from 'date-fns';
+import { formatPrice } from '../../utils/format';
 
 const OrderList = ({ vendorMode = false }) => {
   const { data, isLoading, error } = useOrders();
@@ -28,7 +29,7 @@ const OrderList = ({ vendorMode = false }) => {
         <p className="text-gray-500 dark:text-gray-400">No orders found</p>
         <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Start ordering your favorite desi food!</p>
         <Link to="/products" className="inline-block mt-4 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-md">
-          Browse Products 🇵🇰
+          Browse Products
         </Link>
       </div>
     );
@@ -48,7 +49,7 @@ const OrderList = ({ vendorMode = false }) => {
                     Order #{order.id}
                   </p>
                   <p className="font-semibold text-gray-900 dark:text-white text-lg">
-                    ${totalAmount.toFixed(2)}
+                    {formatPrice(totalAmount)}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {format(new Date(order.created_at), 'MMM dd, yyyy h:mm a')}

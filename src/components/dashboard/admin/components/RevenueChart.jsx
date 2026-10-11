@@ -4,7 +4,7 @@ import React from 'react';
 const RevenueChart = ({ data }) => {
   if (!data || data.length === 0) {
     return (
-      <div className="flex justify-center items-center h-64 text-gray-500">
+      <div className="flex justify-center items-center h-64 text-gray-500 dark:text-gray-400">
         No revenue data available
       </div>
     );
@@ -25,7 +25,7 @@ const RevenueChart = ({ data }) => {
               className="w-full bg-blue-500 rounded-t hover:bg-blue-600 transition-all duration-300"
               style={{ height: height + '%' }}
             ></div>
-            <span className="text-xs text-gray-500 mt-1">{label}</span>
+            <span className="text-xs text-gray-500 mt-1 dark:text-gray-400">{label}</span>
           </div>
         );
       })}

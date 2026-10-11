@@ -83,9 +83,9 @@ const RestaurantApproval = () => {
   }
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-sm">
+    <div className="m-4 sm:m-6 p-4 sm:p-6 bg-white rounded-xl shadow-sm dark:bg-gray-800">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Restaurant Approval</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Restaurant Approval</h2>
         <button
           onClick={fetchRestaurants}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -101,12 +101,12 @@ const RestaurantApproval = () => {
           placeholder="Search restaurants..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:border-gray-600"
         />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:border-gray-600"
         >
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
@@ -116,30 +116,30 @@ const RestaurantApproval = () => {
       </div>
 
       {restaurants.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">No restaurants found</div>
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">No restaurants found</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Name</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Vendor</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Cuisine</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Actions</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Name</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Vendor</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Cuisine</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {restaurants.map((restaurant) => (
-                <tr key={restaurant.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-800">{restaurant.restaurant_name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{restaurant.vendor_name || 'N/A'}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{restaurant.cuisine_type || 'N/A'}</td>
+                <tr key={restaurant.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{restaurant.restaurant_name}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{restaurant.vendor_name || 'N/A'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{restaurant.cuisine_type || 'N/A'}</td>
                   <td className="px-4 py-3 text-sm">
                     <span className={`px-2 py-1 text-xs rounded ${
-                      restaurant.is_approved ? 'bg-green-100 text-green-800' : 
-                      restaurant.is_suspended ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
+                      restaurant.is_approved ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 
+                      restaurant.is_suspended ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' :
+                      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
                     }`}>
                       {restaurant.is_approved ? 'Approved' : restaurant.is_suspended ? 'Suspended' : 'Pending'}
                     </span>
@@ -171,12 +171,12 @@ const RestaurantApproval = () => {
 
       {total > 0 && (
         <div className="flex justify-between items-center mt-4">
-          <p className="text-sm text-gray-500">Total: {total} restaurants</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Total: {total} restaurants</p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+              className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
             >
               Previous
             </button>
@@ -184,7 +184,7 @@ const RestaurantApproval = () => {
             <button
               onClick={() => setPage(p => p + 1)}
               disabled={page >= Math.ceil(total / limit)}
-              className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+              className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
             >
               Next
             </button>

@@ -84,12 +84,12 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-[80vh] flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl"
+        className="max-w-md w-full space-y-6 sm:space-y-8 bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-xl"
       >
         <div>
           <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white">
@@ -129,16 +129,6 @@ const Login = () => {
           </button>
         </div>
 
-        {loginType === 'admin' && (
-          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <p className="text-xs text-blue-600 dark:text-blue-400">
-              🔑 Admin Login: Use admin credentials
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Test: admin@kft.com / Admin@123
-            </p>
-          </div>
-        )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
@@ -153,7 +143,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-field"
-                placeholder={loginType === 'admin' ? 'admin@kft.com' : 'Enter your email'}
+                placeholder="Enter your email"
               />
             </div>
             <div>
@@ -181,22 +171,6 @@ const Login = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
-                Remember me
-              </label>
-            </div>
-            <Link to="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-              Forgot password?
-            </Link>
-          </div>
 
           <div>
             <button

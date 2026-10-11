@@ -31,11 +31,11 @@ const NotificationsPage = () => {
   const getStatusColor = (type) => {
     switch (type) {
       case 'order_update':
-        return 'bg-blue-50 border-blue-200';
+        return 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800';
       case 'delivery':
-        return 'bg-green-50 border-green-200';
+        return 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800';
       case 'payment':
-        return 'bg-purple-50 border-purple-200';
+        return 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800';
       default:
         return 'bg-gray-50 border-gray-200';
     }
@@ -46,7 +46,7 @@ const NotificationsPage = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Link to="/" className="text-gray-500 hover:text-gray-700">
+          <Link to="/" className="text-gray-500 hover:text-gray-700 dark:text-gray-400">
             <FiArrowLeft className="w-5 h-5" />
           </Link>
           <div className="flex-1">
@@ -69,13 +69,13 @@ const NotificationsPage = () => {
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading notifications...</p>
+            <p className="text-gray-600 dark:text-gray-400">Loading notifications...</p>
           </div>
         ) : notifications.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+          <div className="bg-white rounded-xl shadow-sm p-12 text-center dark:bg-gray-800">
             <div className="text-5xl mb-4">🔔</div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">No notifications yet</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2 dark:text-white">No notifications yet</h2>
+            <p className="text-gray-600 mb-6 dark:text-gray-400">
               You're all caught up! New notifications will appear here.
             </p>
             <Link
@@ -140,7 +140,7 @@ const NotificationsPage = () => {
                     )}
                     <button
                       onClick={() => deleteNotification(notification.id)}
-                      className="p-2 text-gray-600 hover:bg-red-100 hover:text-red-600 rounded transition"
+                      className="p-2 text-gray-600 hover:bg-red-100 hover:text-red-600 rounded transition dark:text-gray-400"
                       title="Delete notification"
                     >
                       <FiTrash2 className="w-4 h-4" />

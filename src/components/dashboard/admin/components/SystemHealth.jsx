@@ -12,19 +12,19 @@ const SystemHealth = ({ data }) => {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-600">Uptime</span>
+        <span className="text-sm text-gray-600 dark:text-gray-400">Uptime</span>
         <span className="text-sm font-medium text-green-600">{healthData.uptime}</span>
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-600">Response Time</span>
+        <span className="text-sm text-gray-600 dark:text-gray-400">Response Time</span>
         <span className="text-sm font-medium text-blue-600">{healthData.responseTime}</span>
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-600">Error Rate</span>
+        <span className="text-sm text-gray-600 dark:text-gray-400">Error Rate</span>
         <span className="text-sm font-medium text-yellow-600">{healthData.errorRate}</span>
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-600">Active Users</span>
+        <span className="text-sm text-gray-600 dark:text-gray-400">Active Users</span>
         <span className="text-sm font-medium text-purple-600">{healthData.activeUsers}</span>
       </div>
     </div>

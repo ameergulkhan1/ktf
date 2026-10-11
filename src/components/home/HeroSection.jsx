@@ -1,7 +1,7 @@
 ﻿// src/components/home/HeroSection.jsx
 
 import React, { useMemo, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -21,7 +21,7 @@ const FloatingEmoji = ({ emoji, className, animation }) => (
       repeat: Infinity,
       ease: 'easeInOut',
     }}
-    className={`absolute text-5xl sm:text-7xl opacity-30 pointer-events-none select-none ${className}`}
+    className={`absolute hidden sm:block text-5xl lg:text-7xl opacity-30 pointer-events-none select-none ${className}`}
   >
     {emoji}
   </motion.div>
@@ -58,7 +58,7 @@ const ImageCard = ({ image, index }) => {
         loading="lazy"
         className="h-60 w-full object-cover transition-transform duration-700 group-hover:scale-110"
         onError={(e) => {
-          e.target.src = '/images/fallback-food.jpg';
+          e.target.style.visibility = 'hidden';
         }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-60" />
@@ -66,7 +66,7 @@ const ImageCard = ({ image, index }) => {
       {/* Desi badge overlay */}
       {index === 0 && (
         <div className="absolute bottom-3 left-3 bg-yellow-400/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-gray-900">
-          🇵🇰 Desi Flavor
+          Desi Flavor
         </div>
       )}
     </motion.div>
@@ -75,6 +75,7 @@ const ImageCard = ({ image, index }) => {
 
 const HeroSection = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Memoized data with Pakistani/Desi food images
@@ -129,7 +130,7 @@ const HeroSection = () => {
         animation: { y: [0, -15, 0], x: [0, 10, 0] },
       },
       {
-        emoji: '🫓',
+        emoji: '🍞',
         className: 'bottom-1/3 left-[20%]',
         animation: { y: [0, 20, 0], rotate: [0, -10, 0] },
       },
@@ -144,8 +145,9 @@ const HeroSection = () => {
 
   const handleSearch = useCallback((e) => {
     e.preventDefault();
-    console.log('Searching for:', searchQuery);
-  }, [searchQuery]);
+    const q = searchQuery.trim();
+    if (q) navigate(`/search?q=${encodeURIComponent(q)}`);
+  }, [searchQuery, navigate]);
 
   const handleSearchChange = useCallback((e) => {
     setSearchQuery(e.target.value);
@@ -153,7 +155,7 @@ const HeroSection = () => {
 
   return (
     <section 
-      className="relative min-h-[90vh] overflow-hidden bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-900"
+      className="relative lg:min-h-[90vh] overflow-hidden bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-900"
       aria-label="Hero section"
     >
       {/* Background Pattern - Desi inspired */}
@@ -186,13 +188,13 @@ const HeroSection = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 max-w-7xl">
-        <div className="grid min-h-[90vh] items-center gap-12 py-16 lg:grid-cols-2 lg:gap-16 lg:py-20">
+        <div className="grid items-center gap-12 py-10 sm:py-16 lg:min-h-[80vh] lg:grid-cols-2 lg:gap-16 lg:py-20">
           {/* Left Content */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="space-y-7"
+            className="space-y-6 sm:space-y-7"
           >
             {/* Status Badge - with Pakistani touch */}
             <motion.div
@@ -207,16 +209,16 @@ const HeroSection = () => {
               />
               <span>
                 {user
-                  ? `🇵🇰 Welcome back, ${user.name || 'User'}!`
-                  : '🇵🇰 Authentic Pakistani Flavors Delivered'}
+                  ? `Welcome back, ${user.full_name?.split(' ')[0] || 'friend'}!`
+                  : 'Authentic Pakistani Flavors Delivered'}
               </span>
             </motion.div>
 
             {/* Heading - with desi vibe */}
             <div>
-              <h1 className="text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
-                <span className="block text-yellow-300 text-3xl sm:text-4xl md:text-5xl mb-2">
-                  🇵🇰 Traditional Taste
+              <h1 className="text-[2.5rem] font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
+                <span className="block text-yellow-300 text-2xl sm:text-4xl md:text-5xl mb-2">
+                  Traditional Taste
                 </span>
                 <span className="relative block">
                   Delivered to You
@@ -267,13 +269,13 @@ const HeroSection = () => {
             </form>
 
             {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:gap-4">
               <Link
                 to="/restaurants"
-                className="group inline-flex items-center gap-2 rounded-2xl bg-white px-6 py-3.5 font-bold text-blue-700 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gray-50 hover:shadow-2xl sm:px-8 sm:py-4"
+                className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 font-bold text-blue-700 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gray-50 hover:shadow-2xl sm:px-8 sm:py-4"
                 aria-label="Start ordering food now"
               >
-                Order Now 🇵🇰
+                Order Now
                 <FiArrowRight 
                   className="transition-transform duration-300 group-hover:translate-x-1"
                   aria-hidden="true"
@@ -301,7 +303,7 @@ const HeroSection = () => {
 
             {/* Trust Text */}
             <p className="text-sm text-white/60">
-              🇵🇰 Trusted by thousands for authentic Pakistani flavors.
+              Trusted by thousands for authentic Pakistani flavors.
             </p>
           </motion.div>
 
@@ -332,7 +334,7 @@ const HeroSection = () => {
             >
               <div className="flex items-center gap-3">
                 <div 
-                  className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-100 text-2xl"
+                  className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-100 text-2xl dark:bg-green-900/30"
                   aria-hidden="true"
                 >
                   🏍️
@@ -375,15 +377,15 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7, duration: 0.6 }}
-          className="border-t border-white/10 py-8"
+          className="border-t border-white/10 py-6 sm:py-8"
         >
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 lg:justify-between">
+          <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-10 lg:justify-between">
             {features.map((feature) => (
               <FeatureItem key={feature.text} icon={feature.icon} text={feature.text} />
             ))}
 
             {/* Happy Customers */}
-            <div className="flex items-center gap-3 text-white/85">
+            <div className="col-span-2 flex items-center justify-center gap-3 text-white/85 sm:col-auto">
               <div className="flex -space-x-3" aria-label="Happy customers">
                 {customers.map((image, index) => (
                   <img
@@ -393,7 +395,7 @@ const HeroSection = () => {
                     loading="lazy"
                     className="h-9 w-9 rounded-full border-2 border-blue-700 object-cover sm:h-10 sm:w-10"
                     onError={(e) => {
-                      e.target.src = '/images/default-avatar.jpg';
+                      e.target.style.display = 'none';
                     }}
                   />
                 ))}

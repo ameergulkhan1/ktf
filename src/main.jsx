@@ -8,6 +8,7 @@ import './styles/index.css';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { WishlistProvider } from './context/WishlistContext';
 
 // ============================================
 // ✅ DISABLE ALL CONSOLE LOGS IN PRODUCTION
@@ -88,7 +89,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <ThemeProvider>
           <AuthProvider>
             <CartProvider>
-              <App />
+              <WishlistProvider>
+                <App />
+              </WishlistProvider>
             </CartProvider>
           </AuthProvider>
         </ThemeProvider>

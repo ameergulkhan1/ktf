@@ -1,5 +1,8 @@
 ﻿/** @type {import('tailwindcss').Config} */
 export default {
+  // ThemeContext toggles a `dark` class on <html>. Without this Tailwind used the default
+  // 'media' strategy, so dark: styles followed the OS setting and the toggle did nothing.
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -7,8 +10,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#E23744',
-        secondary: '#FF6B6B',
+        primary: '#2563EB',
+        secondary: '#3B82F6',
         dark: '#1A1A2E',
         light: '#F5F5F5',
         success: '#22C55E',

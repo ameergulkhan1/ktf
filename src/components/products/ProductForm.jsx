@@ -141,7 +141,7 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
         toast.success('Product created successfully! 🎉');
       }
 
-      navigate('/vendor/products');
+      navigate('/vendor/dashboard');
     } catch (error) {
       console.error('Error saving product:', error);
       toast.error(error.response?.data?.message || 'Failed to save product');
@@ -154,7 +154,7 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
     <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl mx-auto">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-          {isEditing ? '✏️ Edit Product' : '🇵🇰 Add New Product'}
+          {isEditing ? '✏️ Edit Product' : 'Add New Product'}
         </h2>
 
         {/* Image Upload */}
@@ -387,7 +387,7 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
         <div className="flex flex-wrap justify-end gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
           <button
             type="button"
-            onClick={() => navigate('/vendor/products')}
+            onClick={() => navigate('/vendor/dashboard')}
             className="px-6 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2"
           >
             <FiX className="w-4 h-4" />
@@ -409,7 +409,7 @@ const ProductForm = ({ product, isEditing = false, vendorId }) => {
             ) : (
               <>
                 <FiSave className="w-4 h-4" />
-                <span>{isEditing ? 'Update Product 🇵🇰' : 'Create Product 🇵🇰'}</span>
+                <span>{isEditing ? 'Update Product' : 'Create Product'}</span>
               </>
             )}
           </button>

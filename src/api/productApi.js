@@ -147,6 +147,7 @@ export const productApi = {
       return {
         success: true,
         products: extractProducts(response.data || response),
+        pagination: response.data?.pagination || {}
       };
     } catch (error) {
       console.error('Error searching products:', error);

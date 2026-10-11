@@ -1,120 +1,117 @@
 ﻿// src/pages/OrdersPage.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { FiChevronRight } from 'react-icons/fi';
 import { useOrders } from '../hooks/useOrders';
-import Loader from '../components/common/Loader';
+import { formatPrice } from '../utils/format';
+import { statusBadge, statusLabel, canCustomerCancel } from '../utils/orderStatus';
+import { EmptyState } from '../components/common/States';
+
+const TABS = ['all', 'pending', 'confirmed', 'preparing', 'ready', 'picked_up', 'delivered', 'cancelled'];
 
 const OrdersPage = () => {
-  const { orders, loading, error, fetchOrders } = useOrders();
+  // useOrders loads the list itself on mount.
+  const { orders, loading, error, fetchOrders, cancelOrder } = useOrders();
   const [activeTab, setActiveTab] = useState('all');
+  const [cancelling, setCancelling] = useState(null);
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+  const filteredOrders = (orders || []).filter((order) => activeTab === 'all' || order.status === activeTab);
 
-  const filteredOrders = orders?.filter(order => {
-    if (activeTab === 'all') return true;
-    return order.status === activeTab;
-  }) || [];
-
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: 'bg-yellow-500',
-      confirmed: 'bg-blue-500',
-      preparing: 'bg-indigo-500',
-      ready: 'bg-purple-500',
-      delivered: 'bg-emerald-500',
-      cancelled: 'bg-red-500'
-    };
-    return colors[status] || 'bg-gray-500';
+  const handleCancel = async (order) => {
+    if (!window.confirm(`Cancel order #${order.order_number || order.id}?`)) return;
+    setCancelling(order.id);
+    const response = await cancelOrder(order.id, 'Cancelled by customer');
+    setCancelling(null);
+    if (response?.success) toast.success('Order cancelled');
+    else toast.error(response?.message || 'This order can no longer be cancelled');
   };
 
-  if (loading) {
-    return <Loader fullScreen />;
-  }
-
   return (
-    <div className="container-custom py-8">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">🇵🇰 My Orders</h1>
-      
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {['all', 'pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'].map((tab) => (
+    <div className="container-custom py-6 sm:py-8">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-6">My Orders</h1>
+
+      <div className="-mx-4 px-4 sm:mx-0 sm:px-0 flex gap-2 overflow-x-auto scrollbar-none pb-2 mb-4">
+        {TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition ${
               activeTab === tab
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab === 'all' ? 'All' : statusLabel(tab)}
           </button>
         ))}
       </div>
 
-      {error ? (
-        <div className="text-center py-12 text-red-500">
-          <p>Error loading orders: {error}</p>
-          <button
-            onClick={() => fetchOrders()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
-            Retry
-          </button>
+      {loading && !orders?.length ? (
+        <div className="space-y-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-36 rounded-xl bg-white dark:bg-gray-800 animate-pulse" />
+          ))}
         </div>
+      ) : error ? (
+        <EmptyState icon="😅" title="Could not load your orders" text={String(error)} onAction={() => fetchOrders()} actionLabel="Retry" />
       ) : filteredOrders.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
-          <div className="text-5xl mb-4">🛒</div>
-          <p className="text-gray-500 dark:text-gray-400">No orders found</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Start ordering your favorite desi food!</p>
-          <Link to="/products" className="mt-4 inline-block px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md">
-            Start Shopping 🇵🇰
-          </Link>
-        </div>
+        <EmptyState
+          icon="🛒"
+          title={activeTab === 'all' ? 'No orders yet' : `No ${statusLabel(activeTab).toLowerCase()} orders`}
+          text="Start ordering your favorite desi food!"
+          actionTo="/products"
+          actionLabel="Start shopping"
+        />
       ) : (
         <div className="space-y-4">
-          {filteredOrders.map((order) => (
-            <div key={order.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition p-6 border border-gray-100 dark:border-gray-700">
-              <div className="flex flex-wrap justify-between items-start gap-4">
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Order #{order.order_number || order.id}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {new Date(order.created_at).toLocaleDateString()} at {new Date(order.created_at).toLocaleTimeString()}
-                  </p>
+          {filteredOrders.map((order) => {
+            const created = new Date(order.created_at);
+            const itemCount = order.items?.length ?? Number(order.item_count ?? 0);
+            return (
+              <div key={order.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition p-4 sm:p-6 border border-gray-100 dark:border-gray-700">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 dark:text-white truncate">Order #{order.order_number || order.id}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {created.toLocaleDateString()} · {created.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${statusBadge(order.status)}`}>
+                    {statusLabel(order.status)}
+                  </span>
                 </div>
-                <span className={`px-3 py-1 text-xs font-semibold text-white rounded-full ${getStatusColor(order.status)}`}>
-                  {order.status || 'Pending'}
-                </span>
+
+                <div className="mt-3 flex items-center justify-between gap-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    {itemCount} item{itemCount === 1 ? '' : 's'}
+                  </p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-white">{formatPrice(order.total)}</p>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between gap-4">
+                  {canCustomerCancel(order.status) ? (
+                    <button
+                      onClick={() => handleCancel(order)}
+                      disabled={cancelling === order.id}
+                      className="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 disabled:opacity-50"
+                    >
+                      {cancelling === order.id ? 'Cancelling…' : 'Cancel order'}
+                    </button>
+                  ) : (
+                    <span />
+                  )}
+                  <Link
+                    to={`/orders/${order.id}`}
+                    className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700"
+                  >
+                    View details
+                    <FiChevronRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </div>
-              
-              <div className="mt-4 flex flex-wrap items-center gap-4">
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {/* The orders list endpoint returns a SQL item_count, not a nested
-                      items array, so items?.length alone always rendered "0 items". */}
-                  {order.items?.length ?? Number(order.item_count ?? 0)} items
-                </p>
-                <p className="text-lg font-bold text-gray-800 dark:text-white">
-                  Rs. {parseFloat(order.total || 0).toFixed(2)}
-                </p>
-              </div>
-              
-              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-wrap gap-4">
-                <Link
-                  to={`/orders/${order.id}`}
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium flex items-center gap-1 transition"
-                >
-                  View Details →
-                </Link>
-                {order.status === 'pending' && (
-                  <button className="text-red-500 hover:text-red-600 text-sm font-medium transition">
-                    Cancel Order
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

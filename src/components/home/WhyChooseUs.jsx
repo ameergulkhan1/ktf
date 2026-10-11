@@ -36,16 +36,16 @@ const features = [
 
 const WhyChooseUs = () => {
   return (
-    <section className="py-20 bg-white dark:bg-gray-800 transition-colors duration-200">
+    <section className="py-12 sm:py-20 bg-white dark:bg-gray-800 transition-colors duration-200">
       <div className="container-custom">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center max-w-2xl mx-auto mb-12"
+          className="text-center max-w-2xl mx-auto mb-8 sm:mb-12"
         >
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            🇵🇰 Why Choose Us
+          <h2 className="section-title">
+            Why Choose Us
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mt-2">
             We bring the authentic taste of Pakistan to your doorstep

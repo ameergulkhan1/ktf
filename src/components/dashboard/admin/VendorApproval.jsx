@@ -125,18 +125,18 @@ const VendorApproval = () => {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-500">Loading vendors...</span>
+        <span className="ml-3 text-gray-500 dark:text-gray-400">Loading vendors...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-6 bg-white rounded-xl shadow-sm">
+      <div className="m-4 sm:m-6 p-4 sm:p-6 bg-white rounded-xl shadow-sm dark:bg-gray-800">
         <div className="text-center py-8">
           <div className="text-5xl mb-4">⚠️</div>
           <h3 className="text-lg font-semibold text-red-600 mb-2">Error Loading Vendors</h3>
-          <p className="text-gray-500 mb-4">{error}</p>
+          <p className="text-gray-500 mb-4 dark:text-gray-400">{error}</p>
           <button
             onClick={fetchVendors}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -149,11 +149,11 @@ const VendorApproval = () => {
   }
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-sm">
+    <div className="p-6 bg-white rounded-xl shadow-sm dark:bg-gray-800">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Vendor Approval</h2>
-          <p className="text-sm text-gray-500">Total: {total} vendors</p>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Vendor Approval</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Total: {total} vendors</p>
         </div>
         <button
           onClick={fetchVendors}
@@ -170,12 +170,12 @@ const VendorApproval = () => {
           placeholder="Search vendors by name or email..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:border-gray-600"
         />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:border-gray-600"
         >
           <option value="pending">⏳ Pending</option>
           <option value="approved">✅ Approved</option>
@@ -185,7 +185,7 @@ const VendorApproval = () => {
       </div>
 
       {vendors.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <div className="text-4xl mb-2">📭</div>
           <p>No vendors found</p>
           {statusFilter && <p className="text-sm">Try changing the status filter</p>}
@@ -193,32 +193,32 @@ const VendorApproval = () => {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Business</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Owner</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Email</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Actions</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Business</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Owner</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Email</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {vendors.map((vendor) => (
-                <tr key={vendor.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-800 font-medium">
+                <tr key={vendor.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="px-4 py-3 text-sm text-gray-800 font-medium dark:text-gray-100">
                     {vendor.business_name || 'N/A'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                     {vendor.full_name || 'N/A'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                     {vendor.email || 'N/A'}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <span className={`px-2 py-1 text-xs rounded-full ${
-                      vendor.is_approved ? 'bg-green-100 text-green-800' : 
-                      vendor.is_suspended ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
+                      vendor.is_approved ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 
+                      vendor.is_suspended ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' :
+                      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
                     }`}>
                       {vendor.is_approved ? '✅ Approved' : 
                        vendor.is_suspended ? '⛔ Suspended' : 
@@ -268,14 +268,14 @@ const VendorApproval = () => {
 
       {total > 0 && (
         <div className="flex justify-between items-center mt-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Showing {vendors.length} of {total} vendors
           </p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 text-sm"
+              className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 text-sm dark:border-gray-600 dark:hover:bg-gray-700"
             >
               Previous
             </button>
@@ -285,7 +285,7 @@ const VendorApproval = () => {
             <button
               onClick={() => setPage(p => p + 1)}
               disabled={page >= Math.ceil(total / limit)}
-              className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 text-sm"
+              className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 text-sm dark:border-gray-600 dark:hover:bg-gray-700"
             >
               Next
             </button>

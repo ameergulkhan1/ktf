@@ -5,7 +5,9 @@ import { useRestaurants } from '../../hooks/useRestaurant';
 import { useCart } from '../../context/CartContext';
 import Loader from '../common/Loader';
 import toast from 'react-hot-toast';
+import { formatRating } from '../../utils/format';
 import { FiStar, FiMapPin, FiClock, FiArrowLeft, FiShoppingCart, FiCheckCircle } from 'react-icons/fi';
+import { formatPrice } from '../../utils/format';
 
 const RestaurantDetail = () => {
   const { id } = useParams();
@@ -104,12 +106,12 @@ const RestaurantDetail = () => {
     );
   }
 
-  const rating = restaurant.average_rating || 0;
+  const rating = formatRating(restaurant.average_rating);
   const isOpen = restaurant.is_open !== false;
   const reviewCount = restaurant.total_reviews || 0;
 
   return (
-    <div className="container-custom py-8">
+    <div className="container-custom py-6 sm:py-8">
       <Link to="/restaurants" className="text-blue-600 hover:text-blue-700 hover:underline mb-4 inline-flex items-center gap-2 transition">
         <FiArrowLeft className="w-4 h-4" />
         Back to Restaurants
@@ -117,16 +119,16 @@ const RestaurantDetail = () => {
       
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700">
         {/* Restaurant Header */}
-        <div className="relative h-64 bg-gradient-to-r from-blue-600 to-indigo-700">
+        <div className="relative min-h-[14rem] sm:h-64 bg-gradient-to-r from-blue-600 to-indigo-700">
           <div className="absolute inset-0 bg-black/30" />
-          <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-4xl backdrop-blur-sm border-2 border-white/30">
+          <div className="relative sm:absolute sm:inset-0 p-5 sm:p-6 pt-16 sm:pt-6 flex flex-col justify-end text-white min-h-[14rem] sm:min-h-0">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 bg-white/20 rounded-full flex items-center justify-center text-4xl backdrop-blur-sm border-2 border-white/30">
                 🏪
               </div>
               <div>
-                <h1 className="text-3xl font-bold">{restaurant.restaurant_name}</h1>
-                <div className="flex flex-wrap items-center gap-3 mt-1">
+                <h1 className="text-2xl sm:text-3xl font-bold">{restaurant.restaurant_name}</h1>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-1 text-sm">
                   <span className="flex items-center gap-1 text-white/80">
                     <FiMapPin className="w-4 h-4" />
                     {restaurant.address || 'Address not available'}
@@ -138,7 +140,7 @@ const RestaurantDetail = () => {
                   <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
                     isOpen ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
                   }`}>
-                    {isOpen ? '🟢 Open Now' : '🔴 Closed'}
+                    {isOpen ? 'Open now' : 'Closed'}
                   </span>
                 </div>
               </div>
@@ -146,13 +148,13 @@ const RestaurantDetail = () => {
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Restaurant Info */}
-          <div className="flex flex-wrap items-center gap-6 mb-6">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-6">
             <div className="flex items-center gap-2">
               <FiStar className="w-5 h-5 text-yellow-400 fill-yellow-400" />
               <span className="font-semibold text-gray-900 dark:text-white">
-                {rating > 0 ? rating.toFixed(1) : 'New'}
+                {rating || 'New'}
               </span>
               <span className="text-gray-500 dark:text-gray-400">({reviewCount} reviews)</span>
             </div>
@@ -162,7 +164,7 @@ const RestaurantDetail = () => {
               </span>
             )}
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              🇵🇰 Authentic Pakistani Cuisine
+              Authentic Pakistani Cuisine
             </span>
           </div>
 
@@ -202,7 +204,7 @@ const RestaurantDetail = () => {
                       </div>
                       <div className="text-right flex-shrink-0">
                         <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                          ${(parseFloat(item.price) || 0).toFixed(2)}
+                          {formatPrice(item.price)}
                         </span>
                         <button
                           type="button"
@@ -225,15 +227,9 @@ const RestaurantDetail = () => {
             <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
               <span className="flex items-center gap-1">
                 <FiCheckCircle className="w-4 h-4 text-emerald-500" />
-                Free delivery on orders over $50
+                Free delivery on orders over Rs. 50
               </span>
             </div>
-            <Link
-              to={`/restaurants/${id}/menu`}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-md hover:shadow-lg"
-            >
-              View Full Menu 🇵🇰
-            </Link>
           </div>
         </div>
       </div>

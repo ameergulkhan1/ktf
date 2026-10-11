@@ -4,6 +4,7 @@ import { useVendorEarnings } from '../../../hooks/useVendor';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { CurrencyDollarIcon, ArrowTrendingUpIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { formatPrice } from '../../../utils/format';
 
 const VendorEarnings = () => {
   const { user } = useAuth();
@@ -15,7 +16,7 @@ const VendorEarnings = () => {
       <div className="container-custom py-8">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="ml-4 text-gray-500">Loading earnings...</p>
+          <p className="ml-4 text-gray-500 dark:text-gray-400">Loading earnings...</p>
         </div>
       </div>
     );
@@ -24,9 +25,9 @@ const VendorEarnings = () => {
   const earnings = earningsData || { total: 0, monthly: 0, weekly: 0, pending: 0, history: [] };
 
   const earningStats = [
-    { label: 'Total Earnings', value: `$${earnings.total?.toFixed(2) || '0.00'}`, icon: CurrencyDollarIcon, color: 'bg-green-500' },
-    { label: 'This Month', value: `$${earnings.monthly?.toFixed(2) || '0.00'}`, icon: ArrowTrendingUpIcon, color: 'bg-blue-500' },
-    { label: 'Pending', value: `$${earnings.pending?.toFixed(2) || '0.00'}`, icon: ClockIcon, color: 'bg-yellow-500' },
+    { label: 'Total Earnings', value: formatPrice(earnings.total), icon: CurrencyDollarIcon, color: 'bg-green-500' },
+    { label: 'This Month', value: formatPrice(earnings.monthly), icon: ArrowTrendingUpIcon, color: 'bg-blue-500' },
+    { label: 'Pending', value: formatPrice(earnings.pending), icon: ClockIcon, color: 'bg-yellow-500' },
   ];
 
   const history = earnings.history || [];
@@ -98,9 +99,9 @@ const VendorEarnings = () => {
                 {history.map((item, index) => (
                   <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">#{item.order_id}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">${item.amount?.toFixed(2) || '0.00'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">${item.commission?.toFixed(2) || '0.00'}</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-green-600">${item.earnings?.toFixed(2) || '0.00'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{formatPrice(item.amount)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{formatPrice(item.commission)}</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-green-600">{formatPrice(item.earnings)}</td>
                     <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {format(new Date(item.date), 'MMM dd, yyyy')}
                     </td>
