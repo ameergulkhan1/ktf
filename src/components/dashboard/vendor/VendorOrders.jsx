@@ -1,10 +1,11 @@
 ﻿// src/components/dashboard/vendor/VendorOrders.jsx
 import React, { useState, useEffect } from 'react';
 import { useVendor } from '../../../hooks/useVendor';
-import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import vendorApi from '../../../api/vendorApi';
 import { FiTruck, FiCheck, FiX } from 'react-icons/fi';
+import { formatPrice } from '../../../utils/format';
+import { statusBadge } from '../../../utils/orderStatus';
 
 const VendorOrders = () => {
   const { orders, loading, refetchOrders } = useVendor();
@@ -36,23 +37,9 @@ const VendorOrders = () => {
     }
   }, [orders, filter]);
 
-  const formatCurrency = (amount) => {
-    const num = parseFloat(amount) || 0;
-    return 'Rs. ' + num.toFixed(2);
-  };
+  const formatCurrency = formatPrice;
 
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      confirmed: 'bg-blue-100 text-blue-800',
-      preparing: 'bg-purple-100 text-purple-800',
-      ready: 'bg-indigo-100 text-indigo-800',
-      picked_up: 'bg-cyan-100 text-cyan-800',
-      delivered: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
+  const getStatusColor = statusBadge;
 
   const getNextStatus = (currentStatus) => {
     const statusFlow = {
@@ -120,144 +107,148 @@ const VendorOrders = () => {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
-        <span className="ml-3 text-gray-600">Loading orders...</span>
+        <span className="ml-3 text-gray-600 dark:text-gray-400">Loading orders...</span>
       </div>
     );
   }
 
+  const FILTERS = ['all', 'pending', 'confirmed', 'preparing', 'ready', 'picked_up', 'delivered', 'cancelled'];
+
+  const actions = (order) => (
+    <div className="flex flex-wrap gap-2">
+      <button
+        onClick={() => handleOpenStatusModal(order)}
+        disabled={!canUpdateStatus(order.status)}
+        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+          canUpdateStatus(order.status)
+            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300'
+            : 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700'
+        }`}
+      >
+        <FiCheck className="inline mr-1" /> Update status
+      </button>
+      {(order.status === 'ready' || order.status === 'picked_up') && (
+        <button
+          onClick={() => handleOpenShipperModal(order)}
+          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 transition"
+        >
+          <FiTruck className="inline mr-1" /> Rider details
+        </button>
+      )}
+    </div>
+  );
+
+  const statusPill = (status) => (
+    <span className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${getStatusColor(status)}`}>
+      {(status || 'pending').replace('_', ' ').toUpperCase()}
+    </span>
+  );
+
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">My Orders</h1>
-        <div className="flex gap-2 flex-wrap">
+    <div className="p-4 sm:p-6">
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">My Orders</h1>
+      <div className="-mx-4 px-4 sm:mx-0 sm:px-0 flex gap-2 overflow-x-auto scrollbar-none pb-2 mb-4">
+        {FILTERS.map((key) => (
           <button
-            onClick={() => setFilter('all')}
-            className={`px-3 py-1 rounded-lg text-sm whitespace-nowrap ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+            key={key}
+            onClick={() => setFilter(key)}
+            className={`px-3 py-1.5 rounded-lg text-sm whitespace-nowrap capitalize ${
+              filter === key ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+            }`}
           >
-            All
+            {key === 'all' ? 'All' : key.replace('_', ' ')}
           </button>
-          <button
-            onClick={() => setFilter('pending')}
-            className={`px-3 py-1 rounded-lg text-sm whitespace-nowrap ${filter === 'pending' ? 'bg-yellow-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-          >
-            Pending
-          </button>
-          <button
-            onClick={() => setFilter('confirmed')}
-            className={`px-3 py-1 rounded-lg text-sm whitespace-nowrap ${filter === 'confirmed' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-          >
-            Confirmed
-          </button>
-          <button
-            onClick={() => setFilter('ready')}
-            className={`px-3 py-1 rounded-lg text-sm whitespace-nowrap ${filter === 'ready' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-          >
-            Ready
-          </button>
-          <button
-            onClick={() => setFilter('delivered')}
-            className={`px-3 py-1 rounded-lg text-sm whitespace-nowrap ${filter === 'delivered' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-          >
-            Delivered
-          </button>
-        </div>
+        ))}
       </div>
 
       {filteredOrders?.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-          <p className="text-gray-500">No orders found</p>
+        <div className="text-center py-12 bg-white rounded-xl shadow-sm dark:bg-gray-800">
+          <p className="text-gray-500 dark:text-gray-400">No orders found</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order #</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Items</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                      #{order.order_number || order.id}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {new Date(order.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      <div>
+        <>
+          {/* Phones: one card per order */}
+          <div className="space-y-3 md:hidden">
+            {filteredOrders.map((order) => (
+              <div key={order.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 dark:text-white break-all">#{order.order_number || order.id}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(order.created_at).toLocaleString()}</p>
+                  </div>
+                  {statusPill(order.status)}
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-700 dark:text-gray-200 truncate">{order.customer_name || 'Customer'}</p>
+                    {order.customer_phone && (
+                      <a href={`tel:${order.customer_phone}`} className="text-xs text-blue-600 dark:text-blue-400">{order.customer_phone}</a>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-gray-900 dark:text-white">{formatCurrency(order.total)}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{order.total_items || order.item_count || 0} items</p>
+                  </div>
+                </div>
+                {actions(order)}
+              </div>
+            ))}
+          </div>
+
+          {/* Tablets and up: table */}
+          <div className="hidden md:block bg-white rounded-xl shadow-sm overflow-hidden dark:bg-gray-800">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-900">
+                  <tr>
+                    {['Order #', 'Date', 'Customer', 'Items', 'Total', 'Status', 'Action'].map((h) => (
+                      <th key={h} className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-gray-50 transition dark:hover:bg-gray-700">
+                      <td className="px-4 lg:px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">#{order.order_number || order.id}</td>
+                      <td className="px-4 lg:px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 lg:px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                         <div className="font-medium">{order.customer_name || 'N/A'}</div>
                         <div className="text-xs text-gray-400">{order.customer_phone || ''}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {order.total_items || order.item_count || 0} items
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                      {formatCurrency(order.total)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
-                        {(order.status || 'pending').replace('_', ' ').toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm space-x-2">
-                      <button
-                        onClick={() => handleOpenStatusModal(order)}
-                        disabled={!canUpdateStatus(order.status)}
-                        className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
-                          canUpdateStatus(order.status)
-                            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        }`}
-                      >
-                        <FiCheck className="inline mr-1" /> Update
-                      </button>
-                      {(order.status === 'ready' || order.status === 'picked_up') && (
-                        <button
-                          onClick={() => handleOpenShipperModal(order)}
-                          className="px-3 py-1 rounded-lg text-xs font-medium bg-purple-100 text-purple-700 hover:bg-purple-200 transition"
-                        >
-                          <FiTruck className="inline mr-1" /> Shipper
-                        </button>
-                      )}
-                      <Link
-                        to={`/orders/${order.id}`}
-                        className="px-3 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
-                      >
-                        View
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="px-4 lg:px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        {order.total_items || order.item_count || 0} items
+                      </td>
+                      <td className="px-4 lg:px-6 py-4 text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                        {formatCurrency(order.total)}
+                      </td>
+                      <td className="px-4 lg:px-6 py-4">{statusPill(order.status)}</td>
+                      <td className="px-4 lg:px-6 py-4 text-sm">{actions(order)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Status Update Modal */}
       {showStatusModal && selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Update Order Status</h2>
+          <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6 dark:bg-gray-800">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 dark:text-white">Update Order Status</h2>
             
             <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">Current Status: <span className="font-semibold text-gray-900">{(selectedOrder.status || 'pending').replace('_', ' ').toUpperCase()}</span></p>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <p className="text-sm text-gray-600 mb-2 dark:text-gray-400">Current Status: <span className="font-semibold text-gray-900 dark:text-white">{(selectedOrder.status || 'pending').replace('_', ' ').toUpperCase()}</span></p>
+              <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">
                 New Status
               </label>
               <select
                 value={statusUpdate.status}
                 onChange={(e) => setStatusUpdate({ status: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600"
               >
                 <option value="confirmed">Confirmed</option>
                 <option value="preparing">Preparing</option>
@@ -268,8 +259,8 @@ const VendorOrders = () => {
             </div>
 
             {statusUpdate.status === 'ready' && (
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-xs text-blue-800">
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
+                <p className="text-xs text-blue-800 dark:text-blue-300">
                   📝 Tip: After marking as "Ready", you can add shipper details to track delivery.
                 </p>
               </div>
@@ -278,7 +269,7 @@ const VendorOrders = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowStatusModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 Cancel
               </button>
@@ -297,14 +288,14 @@ const VendorOrders = () => {
       {/* Shipper Details Modal */}
       {showShipperModal && selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
+          <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6 dark:bg-gray-800">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 dark:text-white">
               <FiTruck className="inline mr-2" />Add Shipper Details
             </h2>
             
             <div className="space-y-3 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Shipper Name *
                 </label>
                 <input
@@ -312,12 +303,12 @@ const VendorOrders = () => {
                   placeholder="e.g., Ahmed Khan"
                   value={shipperDetails.shipper_name}
                   onChange={(e) => setShipperDetails({ ...shipperDetails, shipper_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-600"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Shipper Phone *
                 </label>
                 <input
@@ -325,12 +316,12 @@ const VendorOrders = () => {
                   placeholder="e.g., 03001234567"
                   value={shipperDetails.shipper_phone}
                   onChange={(e) => setShipperDetails({ ...shipperDetails, shipper_phone: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-600"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Vehicle Info (Optional)
                 </label>
                 <input
@@ -338,12 +329,12 @@ const VendorOrders = () => {
                   placeholder="e.g., White Bike, ABC-123"
                   value={shipperDetails.shipper_vehicle}
                   onChange={(e) => setShipperDetails({ ...shipperDetails, shipper_vehicle: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-600"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Tracking Number (Optional)
                 </label>
                 <input
@@ -351,7 +342,7 @@ const VendorOrders = () => {
                   placeholder="e.g., TRK-123456"
                   value={shipperDetails.tracking_number}
                   onChange={(e) => setShipperDetails({ ...shipperDetails, tracking_number: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-600"
                 />
               </div>
             </div>
@@ -359,7 +350,7 @@ const VendorOrders = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowShipperModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 Cancel
               </button>

@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { FiTrash2, FiPlus, FiMinus, FiShoppingCart, FiArrowLeft, FiCreditCard, FiTruck, FiClock } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { calculateTotals, PRICING } from '../../config/site';
+import { formatPrice } from '../../utils/format';
 
 const safeNumber = (value, fallback = 0) => {
   const num = parseFloat(value);
@@ -102,7 +104,7 @@ const CartPage = () => {
   };
 
   const formatCurrency = (amount) => {
-    return '$' + safeNumber(amount).toFixed(2);
+    return formatPrice(amount);
   };
 
   if (loading && initialLoad) {
@@ -146,26 +148,24 @@ const CartPage = () => {
             className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition shadow-md"
           >
             <FiArrowLeft className="w-4 h-4" />
-            Start Shopping 🇵🇰
+            Start Shopping
           </Link>
         </div>
       </div>
     );
   }
 
-  const deliveryFee = cartTotal > 50 ? 0 : 5;
-  const tax = cartTotal * 0.1;
-  const grandTotal = cartTotal + deliveryFee + tax;
+  const { deliveryFee, tax, total: grandTotal } = calculateTotals(cartTotal);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row gap-8">
+    <div className="container-custom py-6 sm:py-8">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
         {/* Cart Items */}
         <div className="flex-1">
           <div className="flex flex-wrap justify-between items-center mb-6 gap-2">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <FiShoppingCart className="w-6 h-6 text-blue-600" />
-              Your Cart 🇵🇰 ({itemCount} items)
+              Your Cart ({itemCount} items)
             </h1>
             <button
               onClick={handleClearCart}
@@ -194,7 +194,7 @@ const CartPage = () => {
                 >
                   <div className="flex gap-4">
                     {/* Image */}
-                    <div className="w-24 h-24 flex-shrink-0 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
                       {image ? (
                         <img
                           src={image}
@@ -210,8 +210,8 @@ const CartPage = () => {
                     </div>
 
                     {/* Details */}
-                    <div className="flex-1">
-                      <Link to={`/products/${item.product_id || itemId}`} className="font-medium text-gray-900 dark:text-white hover:text-blue-600 transition">
+                    <div className="flex-1 min-w-0">
+                      <Link to={`/products/${item.product_id || itemId}`} className="block truncate font-medium text-gray-900 dark:text-white hover:text-blue-600 transition">
                         {name}
                       </Link>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -223,7 +223,8 @@ const CartPage = () => {
                           <button
                             onClick={() => handleUpdateQuantity(itemId, quantity, -1)}
                             disabled={updating || quantity <= 1}
-                            className="px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 transition rounded-l-lg disabled:opacity-50"
+                            className="px-3 py-1.5 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition rounded-l-lg disabled:opacity-50"
+                            aria-label="Decrease quantity"
                           >
                             <FiMinus className="w-3 h-3" />
                           </button>
@@ -233,7 +234,8 @@ const CartPage = () => {
                           <button
                             onClick={() => handleUpdateQuantity(itemId, quantity, 1)}
                             disabled={updating}
-                            className="px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 transition rounded-r-lg disabled:opacity-50"
+                            className="px-3 py-1.5 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition rounded-r-lg disabled:opacity-50"
+                            aria-label="Increase quantity"
                           >
                             <FiPlus className="w-3 h-3" />
                           </button>
@@ -241,8 +243,9 @@ const CartPage = () => {
 
                         <button
                           onClick={() => handleRemoveItem(itemId)}
-                          className="text-gray-400 hover:text-red-500 transition"
+                          className="p-1 text-gray-400 hover:text-red-500 transition"
                           disabled={updating}
+                          aria-label="Remove item"
                         >
                           <FiTrash2 className="w-4 h-4" />
                         </button>
@@ -250,8 +253,8 @@ const CartPage = () => {
                     </div>
 
                     {/* Total */}
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900 dark:text-white">
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-semibold whitespace-nowrap text-gray-900 dark:text-white">
                         {formatCurrency(total)}
                       </p>
                     </div>
@@ -263,8 +266,8 @@ const CartPage = () => {
         </div>
 
         {/* Order Summary */}
-        <div className="md:w-80 flex-shrink-0">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 sticky top-4">
+        <div className="lg:w-80 flex-shrink-0">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 sm:p-6 lg:sticky lg:top-24">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Order Summary</h2>
             
             <div className="space-y-3">
@@ -282,7 +285,7 @@ const CartPage = () => {
                 </span>
               </div>
               <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                <span>Tax (10%)</span>
+                <span>Tax ({Math.round(PRICING.taxRate * 100)}%)</span>
                 <span className="font-medium text-gray-900 dark:text-white">{formatCurrency(tax)}</span>
               </div>
               
@@ -294,7 +297,7 @@ const CartPage = () => {
                 {deliveryFee === 0 && (
                   <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
                     <FiClock className="w-3 h-3" />
-                    Free delivery on orders over $50
+                    Free delivery on orders over {formatPrice(PRICING.freeDeliveryThreshold)}
                   </p>
                 )}
               </div>
@@ -306,7 +309,7 @@ const CartPage = () => {
               className="w-full mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-xl transition flex items-center justify-center gap-2 font-semibold shadow-md hover:shadow-lg"
             >
               <FiCreditCard className="w-4 h-4" />
-              Proceed to Checkout 🇵🇰
+              Proceed to Checkout
             </button>
 
             <Link

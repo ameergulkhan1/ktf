@@ -3,8 +3,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { productApi } from '../../api/productApi';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 import { FiStar, FiShoppingCart, FiHeart, FiShare2, FiChevronLeft, FiClock, FiTruck, FiShield } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { formatPrice } from '../../utils/format';
 
 const safeNumber = (value, fallback = 0) => {
   const num = parseFloat(value);
@@ -27,6 +29,7 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const fetchRef = useRef(null);
   const { addItem } = useCart();
+  const { isInWishlist, toggle: toggleWishlist } = useWishlist();
 
   useEffect(() => {
     if (fetchRef.current) {
@@ -85,7 +88,22 @@ const ProductDetail = () => {
     if (!product) return;
     const response = await addItem(product.id, quantity, price, name);
     if (response?.success) {
-      toast.success(`Added ${quantity} ${name} to cart!`);
+      toast.success(`Added ${quantity} × ${name} to cart`);
+    }
+  };
+
+  // Native share sheet on phones; copy the link elsewhere. Both buttons were inert before.
+  const handleShare = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: name, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success('Link copied');
+      }
+    } catch {
+      /* user dismissed the share sheet */
     }
   };
 
@@ -144,20 +162,20 @@ const ProductDetail = () => {
   const inStock = stock > 0;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container-custom py-6 sm:py-8">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
-        <Link to="/" className="hover:text-blue-600 transition">Home 🇵🇰</Link>
+        <Link to="/" className="hover:text-blue-600 transition">Home</Link>
         <span>/</span>
         <Link to="/products" className="hover:text-blue-600 transition">Products</Link>
         <span>/</span>
-        <span className="text-gray-900 dark:text-white truncate max-w-[200px]">{name}</span>
+        <span className="text-gray-900 dark:text-white truncate max-w-[50vw] sm:max-w-xs">{name}</span>
       </nav>
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Product Images */}
         <div className="lg:w-1/2">
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden h-96 border border-gray-200 dark:border-gray-700">
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-auto lg:h-[28rem] border border-gray-200 dark:border-gray-700">
             {image ? (
               <img
                 src={image}
@@ -182,7 +200,7 @@ const ProductDetail = () => {
             </span>
           )}
 
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{name}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{name}</h1>
 
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-1">
@@ -200,12 +218,12 @@ const ProductDetail = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-              ${price.toFixed(2)}
+            <span className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">
+              {formatPrice(price)}
             </span>
             {originalPrice > 0 && (
               <span className="text-xl text-gray-400 line-through">
-                ${originalPrice.toFixed(2)}
+                {formatPrice(originalPrice)}
               </span>
             )}
           </div>
@@ -221,35 +239,44 @@ const ProductDetail = () => {
             <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                className="px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                aria-label="Decrease quantity"
               >
                 -
               </button>
               <span className="px-6 py-2 text-center min-w-[50px] text-gray-900 dark:text-white">{quantity}</span>
               <button
                 onClick={() => setQuantity(Math.min(stock, quantity + 1))}
-                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                className="px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                 disabled={!inStock}
+                aria-label="Increase quantity"
               >
                 +
               </button>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={handleAddToCart}
               disabled={!inStock}
-              className="flex-1 px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-xl transition flex items-center justify-center gap-2 font-semibold shadow-md hover:shadow-lg"
+              className="w-full sm:w-auto sm:flex-1 px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-xl transition flex items-center justify-center gap-2 font-semibold shadow-md hover:shadow-lg"
             >
               <FiShoppingCart className="w-5 h-5" />
-              {inStock ? 'Add to Cart 🇵🇰' : 'Out of Stock'}
+              {inStock ? 'Add to Cart' : 'Out of Stock'}
             </button>
-            <button className="px-6 py-3 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition flex items-center gap-2">
-              <FiHeart className="w-5 h-5" />
-              Wishlist
+            <button
+              onClick={() => toggleWishlist(product.id)}
+              aria-pressed={isInWishlist(product.id)}
+              className="flex-1 sm:flex-none px-5 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition flex items-center justify-center gap-2"
+            >
+              <FiHeart className={`w-5 h-5 ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+              {isInWishlist(product.id) ? 'Saved' : 'Wishlist'}
             </button>
-            <button className="px-6 py-3 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition flex items-center gap-2">
+            <button
+              onClick={handleShare}
+              className="flex-1 sm:flex-none px-5 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition flex items-center justify-center gap-2"
+            >
               <FiShare2 className="w-5 h-5" />
               Share
             </button>
@@ -260,7 +287,7 @@ const ProductDetail = () => {
               <FiTruck className="w-5 h-5 text-blue-500" />
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">Free Delivery</p>
-                <p className="text-sm">On orders over $50</p>
+                <p className="text-sm">On orders over Rs. 50</p>
               </div>
             </div>
             <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">

@@ -6,6 +6,7 @@ import { menuApi } from '../../../api/menuApi';
 import vendorApi from '../../../api/vendorApi';
 import { PlusIcon, PencilIcon, TrashIcon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { formatPrice } from '../../../utils/format';
 
 const ManageMenu = () => {
   const navigate = useNavigate();
@@ -170,7 +171,7 @@ const ManageMenu = () => {
   if (loading || isLoading || restaurant === null) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-red-600 border-t-transparent"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
       </div>
     );
   }
@@ -185,7 +186,7 @@ const ManageMenu = () => {
         </p>
         <button
           onClick={() => navigate('/vendor/restaurant')}
-          className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition"
+          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition"
         >
           Create Restaurant
         </button>
@@ -205,7 +206,7 @@ const ManageMenu = () => {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
         >
           <PlusIcon className="w-5 h-5" />
           Add Item
@@ -233,7 +234,7 @@ const ManageMenu = () => {
                     {item.description || 'No description'}
                   </p>
                   <div className="flex items-center gap-2 mt-2">
-                    <span className="text-lg font-bold text-red-600">${item.price}</span>
+                    <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatPrice(item.price)}</span>
                     {item.category && (
                       <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
                         {item.category}
@@ -242,28 +243,28 @@ const ManageMenu = () => {
                   </div>
                   <div className="flex items-center gap-2 mt-2">
                     {item.is_vegetarian && (
-                      <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">🌱 Veg</span>
+                      <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full dark:bg-green-900/30 dark:text-green-300">🌱 Veg</span>
                     )}
                     {item.is_vegan && (
-                      <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">🌿 Vegan</span>
+                      <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full dark:bg-green-900/30 dark:text-green-300">🌿 Vegan</span>
                     )}
                     {item.is_available ? (
-                      <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">Available</span>
+                      <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full dark:bg-green-900/30 dark:text-green-300">Available</span>
                     ) : (
-                      <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full">Unavailable</span>
+                      <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full dark:bg-red-900/30 dark:text-red-300">Unavailable</span>
                     )}
                   </div>
                 </div>
                 <div className="flex gap-1">
                   <button
                     onClick={() => handleEdit(item)}
-                    className="p-1.5 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition"
+                    className="p-1.5 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition dark:text-gray-400"
                   >
                     <PencilIcon className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="p-1.5 text-gray-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition"
+                    className="p-1.5 text-gray-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition dark:text-gray-400"
                   >
                     <TrashIcon className="w-4 h-4" />
                   </button>
@@ -286,7 +287,7 @@ const ManageMenu = () => {
                 </h2>
                 <button
                   onClick={handleCloseModal}
-                  className="p-1 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition"
+                  className="p-1 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition dark:text-gray-400 dark:hover:bg-gray-700"
                 >
                   <XMarkIcon className="w-6 h-6" />
                 </button>
@@ -303,7 +304,7 @@ const ManageMenu = () => {
                     value={formData.item_name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
 
@@ -316,7 +317,7 @@ const ManageMenu = () => {
                     value={formData.description}
                     onChange={handleInputChange}
                     rows="3"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
 
@@ -330,7 +331,7 @@ const ManageMenu = () => {
                       name="category"
                       value={formData.category}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       placeholder="e.g., Appetizer, Main Course"
                     />
                   </div>
@@ -345,7 +346,7 @@ const ManageMenu = () => {
                       onChange={handleInputChange}
                       required
                       step="0.01"
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       placeholder="0.00"
                     />
                   </div>
@@ -361,7 +362,7 @@ const ManageMenu = () => {
                       name="calories"
                       value={formData.calories}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       placeholder="e.g., 250"
                     />
                   </div>
@@ -374,7 +375,7 @@ const ManageMenu = () => {
                       name="preparation_time"
                       value={formData.preparation_time}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       placeholder="e.g., 15"
                     />
                   </div>
@@ -387,7 +388,7 @@ const ManageMenu = () => {
                       name="image_url"
                       value={formData.image_url}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       placeholder="https://example.com/image.jpg"
                     />
                   </div>
@@ -400,7 +401,7 @@ const ManageMenu = () => {
                       name="is_vegetarian"
                       checked={formData.is_vegetarian}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded dark:border-gray-600"
                     />
                     <span className="text-sm text-gray-700 dark:text-gray-300">Vegetarian</span>
                   </label>
@@ -410,7 +411,7 @@ const ManageMenu = () => {
                       name="is_vegan"
                       checked={formData.is_vegan}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded dark:border-gray-600"
                     />
                     <span className="text-sm text-gray-700 dark:text-gray-300">Vegan</span>
                   </label>
@@ -420,7 +421,7 @@ const ManageMenu = () => {
                       name="is_available"
                       checked={formData.is_available}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded dark:border-gray-600"
                     />
                     <span className="text-sm text-gray-700 dark:text-gray-300">Available</span>
                   </label>
@@ -429,7 +430,7 @@ const ManageMenu = () => {
                 <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium"
+                    className="flex-1 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium"
                   >
                     {editingItem ? 'Update Item' : 'Add Item'}
                   </button>

@@ -201,29 +201,29 @@ const ManageRestaurant = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Manage Restaurant</h1>
-            <p className="text-gray-500">Set up and manage your restaurant details</p>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Manage Restaurant</h1>
+            <p className="text-gray-500 dark:text-gray-400">Set up and manage your restaurant details</p>
           </div>
           <div className="flex items-center gap-2">
             <span className={`px-3 py-1 text-sm rounded-full ${
-              formData.is_open ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+              formData.is_open ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
             }`}>
               {formData.is_open ? '🟢 Open' : '🔴 Closed'}
             </span>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-6 space-y-6 dark:bg-gray-800">
           {/* Basic Information */}
-          <div className="border-b border-gray-200 pb-6">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">Basic Information</h2>
+          <div className="border-b border-gray-200 pb-6 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4 dark:text-gray-300">Basic Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Restaurant Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -242,17 +242,17 @@ const ManageRestaurant = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Cuisine Type <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="cuisine_type"
                   value={formData.cuisine_type}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:border-gray-600"
                 >
                   <option value="Fast Food">🍔 Fast Food</option>
-                  <option value="Pakistani">🇵🇰 Pakistani</option>
+                  <option value="Pakistani">Pakistani</option>
                   <option value="Chinese">🇨🇳 Chinese</option>
                   <option value="Italian">🇮🇹 Italian</option>
                   <option value="Continental">🌍 Continental</option>
@@ -264,7 +264,7 @@ const ManageRestaurant = () => {
               </div>
               
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Description
                 </label>
                 <textarea
@@ -272,7 +272,7 @@ const ManageRestaurant = () => {
                   value={formData.description}
                   onChange={handleChange}
                   rows="3"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:border-gray-600"
                   placeholder="Describe your restaurant, specialties, and ambiance..."
                 />
               </div>
@@ -280,11 +280,11 @@ const ManageRestaurant = () => {
           </div>
 
           {/* Location & Contact */}
-          <div className="border-b border-gray-200 pb-6">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">Location & Contact</h2>
+          <div className="border-b border-gray-200 pb-6 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4 dark:text-gray-300">Location & Contact</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Address <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -303,7 +303,7 @@ const ManageRestaurant = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   City <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -311,13 +311,13 @@ const ManageRestaurant = () => {
                   name="city"
                   value={formData.city}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:border-gray-600"
                   placeholder="e.g., Islamabad"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   State/Province
                 </label>
                 <input
@@ -325,13 +325,13 @@ const ManageRestaurant = () => {
                   name="state"
                   value={formData.state}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:border-gray-600"
                   placeholder="e.g., Punjab"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Postal Code
                 </label>
                 <input
@@ -339,13 +339,13 @@ const ManageRestaurant = () => {
                   name="postal_code"
                   value={formData.postal_code}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:border-gray-600"
                   placeholder="e.g., 44000"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Phone
                 </label>
                 <input
@@ -364,7 +364,7 @@ const ManageRestaurant = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Email
                 </label>
                 <input
@@ -383,7 +383,7 @@ const ManageRestaurant = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Website
                 </label>
                 <input
@@ -391,7 +391,7 @@ const ManageRestaurant = () => {
                   name="website"
                   value={formData.website}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:border-gray-600"
                   placeholder="https://www.example.com"
                 />
               </div>
@@ -399,11 +399,11 @@ const ManageRestaurant = () => {
           </div>
 
           {/* Delivery Settings */}
-          <div className="border-b border-gray-200 pb-6">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">Delivery Settings</h2>
+          <div className="border-b border-gray-200 pb-6 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4 dark:text-gray-300">Delivery Settings</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Delivery Radius (km)
                 </label>
                 <input
@@ -424,7 +424,7 @@ const ManageRestaurant = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Min Order Amount (Rs.)
                 </label>
                 <input
@@ -445,7 +445,7 @@ const ManageRestaurant = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Delivery Fee (Rs.)
                 </label>
                 <input
@@ -468,24 +468,24 @@ const ManageRestaurant = () => {
           </div>
 
           {/* Opening Hours */}
-          <div className="border-b border-gray-200 pb-6">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">Opening Hours</h2>
+          <div className="border-b border-gray-200 pb-6 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4 dark:text-gray-300">Opening Hours</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => (
-                <div key={day} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
-                  <span className="w-24 text-sm font-medium text-gray-700 capitalize">{day}</span>
+                <div key={day} className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 p-2 bg-gray-50 rounded-lg dark:bg-gray-900">
+                  <span className="w-full sm:w-24 text-sm font-medium text-gray-700 capitalize dark:text-gray-300">{day}</span>
                   <input
                     type="time"
                     value={formData.opening_hours?.[day]?.open || '09:00'}
                     onChange={(e) => handleOpeningHoursChange(day, 'open', e.target.value)}
-                    className="px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary"
+                    className="flex-1 min-w-0 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                   />
                   <span className="text-gray-400">-</span>
                   <input
                     type="time"
                     value={formData.opening_hours?.[day]?.close || '22:00'}
                     onChange={(e) => handleOpeningHoursChange(day, 'close', e.target.value)}
-                    className="px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary"
+                    className="flex-1 min-w-0 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                   />
                 </div>
               ))}
@@ -502,12 +502,12 @@ const ManageRestaurant = () => {
                 onChange={handleChange}
                 className="w-5 h-5 text-primary rounded focus:ring-primary"
               />
-              <span className="text-sm font-medium text-gray-700">Restaurant is open for business</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Restaurant is open for business</span>
             </label>
           </div>
 
           {/* Submit */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-wrap gap-3 pt-4">
             <button
               type="submit"
               disabled={saving}
@@ -528,14 +528,14 @@ const ManageRestaurant = () => {
                 <button
                   type="button"
                   onClick={() => window.location.href = '/vendor/menu'}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                 >
                   Manage Menu →
                 </button>
                 <button
                   type="button"
                   onClick={() => window.location.reload()}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                 >
                   🔄 Refresh
                 </button>

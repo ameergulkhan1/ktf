@@ -4,7 +4,7 @@ import React from 'react';
 const RecentActivity = ({ activities }) => {
   if (!activities || activities.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
         No recent activities
       </div>
     );
@@ -40,13 +40,13 @@ const RecentActivity = ({ activities }) => {
   return (
     <div className="space-y-3">
       {activities.slice(0, 10).map((activity, index) => (
-        <div key={index} className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded-lg transition">
+        <div key={index} className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded-lg transition dark:hover:bg-gray-700">
           <span className="text-xl">{getActivityIcon(activity.action)}</span>
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-gray-800">
+            <p className="text-sm text-gray-800 dark:text-gray-100">
               {activity.description || activity.action || 'Activity'}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {activity.admin?.first_name || 'System'} • {formatTime(activity.created_at)}
             </p>
           </div>

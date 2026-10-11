@@ -1,115 +1,134 @@
 // src/components/products/ProductCard.jsx
-import React from 'react';
-import { Link } from 'react-router-dom';
+// The one product card used by the home page, the products list and search results.
+// Those used to be three different cards: one's cart button only showed a "Added to
+// cart!" toast without adding anything, and the wishlist hearts never saved.
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { FiStar, FiShoppingCart, FiHeart } from 'react-icons/fi';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../hooks/useAuth';
-import toast from 'react-hot-toast';
-import { FiStar, FiShoppingCart } from 'react-icons/fi';
+import { useWishlist } from '../../context/WishlistContext';
+import { formatPrice, formatRating, toNumber } from '../../utils/format';
 
-const PLACEHOLDER_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"%3E%3Crect width="300" height="200" fill="%23e5e7eb"/%3E%3Ctext x="150" y="100" font-family="Arial" font-size="20" fill="%239ca3af" text-anchor="middle"%3EProduct%3C/text%3E%3C/svg%3E';
-
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product, layout = 'grid' }) => {
   const { addItem } = useCart();
   const { user } = useAuth();
+  const { isInWishlist, toggle } = useWishlist();
+  const navigate = useNavigate();
+  const [adding, setAdding] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
 
-  const handleAddToCart = (e) => {
+  const id = product.id;
+  const name = product.product_name || product.name || 'Product';
+  const price = toNumber(product.price);
+  const comparePrice = toNumber(product.compare_price || product.original_price);
+  const onSale = comparePrice > price;
+  const rating = formatRating(product.average_rating || product.rating);
+  const stock = toNumber(product.stock_quantity ?? product.stock);
+  const inStock = stock > 0;
+  const image = !imageFailed && (product.image || product.image_url || product.images?.[0]?.image_url);
+  const saved = isInWishlist(id);
+
+  const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-
     if (!user) {
-      toast.error('Please login to add items to cart');
+      toast.error('Please login to add items to your cart');
+      navigate('/login');
       return;
     }
-    
-    addItem(
-      product.id,
-      1,
-      parseFloat(product.price) || 0,
-      product.product_name || product.name
-    );
+    if (user.role !== 'user') {
+      toast.error('Only customer accounts can order');
+      return;
+    }
+    setAdding(true);
+    try {
+      await addItem(id, 1, price, name);
+    } finally {
+      setAdding(false);
+    }
   };
 
-  const getStockStatus = () => {
-    const stock = product.stock_quantity || product.stock || 0;
-    if (stock > 10) return { text: 'In Stock', color: 'text-emerald-600' };
-    if (stock > 0) return { text: `${stock} left`, color: 'text-amber-600' };
-    return { text: 'Out of Stock', color: 'text-red-600' };
+  const handleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggle(id);
   };
 
-  const stockStatus = getStockStatus();
+  const isList = layout === 'list';
 
   return (
-    <Link to={`/products/${product.id}`} className="block group">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 dark:border-gray-700">
-        <div className="h-48 bg-gray-200 dark:bg-gray-700 relative">
+    <Link
+      to={`/products/${id}`}
+      className={`group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 border border-gray-100 dark:border-gray-700 overflow-hidden flex ${
+        isList ? 'flex-row' : 'flex-col'
+      }`}
+    >
+      <div className={`relative bg-gray-100 dark:bg-gray-700 flex-shrink-0 ${isList ? 'w-28 sm:w-44' : 'aspect-[4/3]'}`}>
+        {image ? (
           <img
-            src={product.image || product.images?.[0]?.image_url || PLACEHOLDER_IMAGE}
-            alt={product.product_name || product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            onError={(e) => {
-              e.target.src = PLACEHOLDER_IMAGE;
-            }}
+            src={image}
+            alt={name}
+            loading="lazy"
+            onError={() => setImageFailed(true)}
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
-          
-          {product.compare_price && product.compare_price > product.price && (
-            <div className="absolute top-3 left-3 bg-blue-500 text-white px-2 py-1 text-xs font-bold rounded shadow-md">
-              SALE
-            </div>
-          )}
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-4xl bg-gradient-to-br from-blue-500 to-blue-700">🍽️</div>
+        )}
 
-          {(product.product_type === 'vendor') && (
-            <div className="absolute top-3 right-3 bg-emerald-500 text-white px-2 py-1 text-xs font-bold rounded shadow-md">
-              🇵🇰 Desi
-            </div>
-          )}
-        </div>
-        
-        <div className="p-4">
-          <div className="flex justify-between items-start">
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
-                {product.product_name || product.name}
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-                {product.description || 'Delicious desi product!'}
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                ${parseFloat(product.price || 0).toFixed(2)}
-              </span>
-              {product.compare_price && product.compare_price > product.price && (
-                <span className="text-sm text-gray-400 line-through">
-                  ${parseFloat(product.compare_price).toFixed(2)}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-1">
-              <FiStar className="text-yellow-400 fill-yellow-400 w-4 h-4" />
-              <span className="text-sm text-gray-600 dark:text-gray-300">
-                {product.average_rating || product.rating || 0}
-              </span>
-            </div>
-          </div>
+        {onSale && (
+          <span className="absolute top-2 left-2 bg-blue-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow">SALE</span>
+        )}
 
-          <div className="flex items-center justify-between mt-2">
-            <span className={`text-xs font-medium ${stockStatus.color}`}>
-              {stockStatus.text}
-            </span>
-            {product.sold && (
-              <span className="text-xs text-gray-400">{product.sold} sold</span>
-            )}
+        <button
+          onClick={handleWishlist}
+          className="absolute top-2 right-2 p-2 rounded-full bg-white/90 dark:bg-gray-900/80 shadow hover:scale-110 transition-transform"
+          aria-label={saved ? 'Remove from wishlist' : 'Add to wishlist'}
+          aria-pressed={saved}
+        >
+          <FiHeart className={`w-4 h-4 ${saved ? 'fill-red-500 text-red-500' : 'text-gray-600 dark:text-gray-300'}`} />
+        </button>
+
+        {rating && !isList && (
+          <span className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded-full flex items-center gap-1 text-white text-xs font-semibold">
+            <FiStar className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+            {rating}
+          </span>
+        )}
+      </div>
+
+      <div className="p-3 sm:p-4 flex flex-col flex-1 min-w-0">
+        <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
+          {name}
+        </h3>
+        {product.description && (
+          <p className={`text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 ${isList ? 'line-clamp-2' : 'line-clamp-1'}`}>
+            {product.description}
+          </p>
+        )}
+        {product.vendor_name && (
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 truncate">{product.vendor_name}</p>
+        )}
+
+        <div className="mt-auto pt-3 flex items-end justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-base sm:text-lg font-bold text-gray-900 dark:text-white whitespace-nowrap">{formatPrice(price)}</p>
+            {onSale && <p className="text-xs text-gray-400 line-through whitespace-nowrap">{formatPrice(comparePrice)}</p>}
+            {!inStock ? (
+              <p className="text-xs font-medium text-red-600">Out of stock</p>
+            ) : stock <= 5 ? (
+              <p className="text-xs font-medium text-amber-600">Only {stock} left</p>
+            ) : null}
           </div>
-          
           <button
             onClick={handleAddToCart}
-            className="w-full mt-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition flex items-center justify-center gap-2 font-medium shadow-sm hover:shadow-md"
+            disabled={!inStock || adding}
+            className="flex-shrink-0 p-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl shadow-sm transition-colors"
+            aria-label={`Add ${name} to cart`}
           >
             <FiShoppingCart className="w-4 h-4" />
-            Add to Cart
           </button>
         </div>
       </div>

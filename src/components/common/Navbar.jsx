@@ -1,6 +1,6 @@
-﻿// src/components/layout/Navbar.jsx
+﻿// src/components/common/Navbar.jsx
 import React, { useState, Fragment, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../hooks/useTheme';
@@ -13,10 +13,42 @@ import {
   SunIcon,
   MoonIcon,
   ArrowRightOnRectangleIcon,
-  UserIcon,
+  Squares2X2Icon,
 } from '@heroicons/react/24/outline';
 import { Menu, Transition } from '@headlessui/react';
 import ktfLogo from '../../assets/ktflogo.jpeg';
+import PakFlag from './PakFlag';
+
+const navLinkClass = ({ isActive }) =>
+  `font-medium text-sm lg:text-base whitespace-nowrap transition-colors ${
+    isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:text-blue-600'
+  }`;
+
+const mobileLinkClass =
+  'block px-3 py-2.5 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors';
+
+const iconButtonClass =
+  'relative p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors';
+
+const avatarUrl = (user, size) =>
+  user?.avatar ||
+  user?.avatar_url ||
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name || user?.email || 'U')}&background=2563EB&color=fff&size=${size}`;
+
+const Logo = ({ to }) => (
+  <Link to={to} className="flex items-center gap-2 group flex-shrink-0" aria-label="KTF home">
+    <span className="relative">
+      <img
+        src={ktfLogo}
+        alt="KTF"
+        className="h-10 w-10 md:h-11 md:w-11 rounded-full object-cover shadow-md border-2 border-blue-100 dark:border-blue-800 group-hover:scale-105 transition-transform"
+      />
+      <span className="absolute -bottom-0.5 -right-1 rounded-sm overflow-hidden ring-2 ring-white dark:ring-gray-900 leading-none">
+        <PakFlag className="h-2.5 w-auto block" />
+      </span>
+    </span>
+  </Link>
+);
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,388 +58,288 @@ const Navbar = () => {
   const { items, count } = useCart();
   const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Handle scroll effect
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile menu on route change
+  // Close the mobile menu whenever the route changes. This used to depend on `navigate`,
+  // which is stable, so the menu stayed open over the page the user had just picked.
   useEffect(() => {
     setIsMenuOpen(false);
-  }, [navigate]);
+  }, [location.pathname, location.search]);
 
   const handleLogout = async () => {
-    await logout();
-    navigate('/login');
     setIsMenuOpen(false);
+    await logout();
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
-      setIsMenuOpen(false);
     }
   };
 
-  // Safe cart count calculation
   const cartCount = count || items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
 
-  // Role checks
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
   const isVendor = user?.role === 'vendor';
   const isUser = user?.role === 'user';
 
-  // If admin or vendor, show minimal navbar (no cart)
-  if (isAdmin || isVendor) {
-    return (
-      <nav className={`bg-white dark:bg-gray-900 shadow-md sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 transition-all duration-300 ${
-        isScrolled ? 'shadow-lg' : ''
-      }`}>
-        <div className="container-custom">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link to={`/${user?.role}/dashboard`} className="flex items-center space-x-3 group">
-              <img 
-                src={ktfLogo} 
-                alt="KTF Logo" 
-                className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover shadow-md group-hover:scale-105 transition-transform duration-300 border-2 border-blue-100 dark:border-blue-800"
-              />
-              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                isAdmin ? 'bg-blue-600' : 'bg-blue-500'
-              } text-white`}>
-                {isAdmin ? 'ADMIN' : 'VENDOR'}
-              </span>
-            </Link>
+  const themeButton = (
+    <button onClick={toggleTheme} className={iconButtonClass} aria-label="Toggle theme">
+      {isDarkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+    </button>
+  );
 
-            {/* Dashboard Link */}
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">
-                {isAdmin ? 'Admin Panel' : 'Vendor Panel'}
-              </span>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 text-red-500 hover:text-red-600 transition-colors"
-              >
-                <ArrowRightOnRectangleIcon className="h-5 w-5" />
-                <span className="hidden sm:inline">Logout</span>
-              </button>
-            </div>
-          </div>
+  const cartLink = (
+    <Link to="/cart" className={iconButtonClass} aria-label={`Cart (${cartCount} items)`}>
+      <ShoppingCartIcon className="h-5 w-5 lg:h-6 lg:w-6" />
+      {cartCount > 0 && (
+        <span className="absolute -top-0.5 -right-0.5 bg-blue-600 text-white text-[10px] font-semibold rounded-full h-5 min-w-[1.25rem] px-1 flex items-center justify-center shadow">
+          {cartCount > 9 ? '9+' : cartCount}
+        </span>
+      )}
+    </Link>
+  );
+
+  const shell = (children) => (
+    <nav
+      className={`bg-white/95 dark:bg-gray-900/95 backdrop-blur sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800 transition-shadow ${
+        isScrolled ? 'shadow-lg' : 'shadow-sm'
+      }`}
+    >
+      <div className="container-custom">{children}</div>
+    </nav>
+  );
+
+  // Admins and vendors browsing the storefront get a slim bar that leads back to their panel.
+  if (isAdmin || isVendor) {
+    return shell(
+      <div className="flex items-center justify-between h-16 gap-3">
+        <Logo to="/" />
+        <div className="flex items-center gap-1 sm:gap-2">
+          {themeButton}
+          <Link
+            to={isAdmin ? '/admin/dashboard' : '/vendor/dashboard'}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium"
+          >
+            <Squares2X2Icon className="h-5 w-5" />
+            <span className="hidden sm:inline">{isAdmin ? 'Admin Panel' : 'Vendor Panel'}</span>
+          </Link>
+          <button onClick={handleLogout} className={`${iconButtonClass} text-red-500 hover:text-red-600`} aria-label="Logout">
+            <ArrowRightOnRectangleIcon className="h-5 w-5" />
+          </button>
         </div>
-      </nav>
+      </div>
     );
   }
 
-  // Full navbar for users only (with cart)
-  return (
-    <nav className={`bg-white dark:bg-gray-900 sticky top-0 z-50 transition-all duration-300 border-b border-gray-200 dark:border-gray-700 ${
-      isScrolled ? 'shadow-lg' : 'shadow-md'
-    }`}>
-      <div className="container-custom">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 md:space-x-3 group flex-shrink-0">
-            <div className="relative">
-              <img 
-                src={ktfLogo} 
-                alt="KTF Logo - Authentic Pakistani Food Delivery" 
-                className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover shadow-md group-hover:scale-105 transition-transform duration-300 border-2 border-blue-100 dark:border-blue-800 group-hover:border-blue-500 dark:group-hover:border-blue-400"
-              />
-              <span className="absolute -bottom-1 -right-1 text-[8px] md:text-[10px] bg-blue-600 text-white rounded-full px-1 md:px-1.5 py-0.5 border-2 border-white dark:border-gray-900 leading-none">
-                🇵🇰
-              </span>
-            </div>
-          </Link>
+  return shell(
+    <>
+      <div className="flex items-center justify-between h-16 gap-3">
+        <Logo to="/" />
 
-          {/* Search Bar - Desktop */}
-          {isUser && (
-            <div className="hidden lg:flex flex-1 max-w-md mx-4 xl:mx-8">
-              <form onSubmit={handleSearch} className="relative w-full">
-                <input
-                  type="text"
-                  placeholder="Search biryani, nihari, BBQ..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-2 pl-10 rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200 text-sm"
-                />
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-2.5" />
-              </form>
-            </div>
-          )}
+        {/* Search - desktop, customers only */}
+        {isUser && (
+          <form onSubmit={handleSearch} className="hidden lg:flex flex-1 max-w-md mx-4 xl:mx-8 relative" role="search">
+            <input
+              type="search"
+              placeholder="Search biryani, nihari, BBQ..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search food"
+              className="w-full px-4 py-2 pl-10 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 text-sm"
+            />
+            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          </form>
+        )}
 
-          {/* Desktop Navigation - Right side */}
-          <div className="hidden md:flex items-center space-x-1 lg:space-x-6">
-            {isUser ? (
+        {/* Desktop navigation */}
+        <div className="hidden md:flex items-center gap-2 lg:gap-5">
+          <NavLink to="/restaurants" className={navLinkClass}>Restaurants</NavLink>
+          <NavLink to="/products" className={navLinkClass}>Products</NavLink>
+          {!isUser && <NavLink to="/offers" className={navLinkClass}>Offers</NavLink>}
+
+          <div className="flex items-center gap-1">
+            {themeButton}
+            {isUser && (
               <>
-                <Link to="/restaurants" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors font-medium text-sm lg:text-base whitespace-nowrap">
-                  Restaurants
-                </Link>
-                <Link to="/products" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors font-medium text-sm lg:text-base whitespace-nowrap">
-                  Products
-                </Link>
-                
-                <button
-                  onClick={toggleTheme}
-                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors p-1"
-                  aria-label="Toggle theme"
-                >
-                  {isDarkMode ? <SunIcon className="h-5 w-5 lg:h-6 lg:w-6" /> : <MoonIcon className="h-5 w-5 lg:h-6 lg:w-6" />}
-                </button>
-                
-                <Link to="/wishlist" className="relative text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors p-1">
+                <Link to="/wishlist" className={iconButtonClass} aria-label="Wishlist">
                   <HeartIcon className="h-5 w-5 lg:h-6 lg:w-6" />
                 </Link>
-                
-                {/* Cart */}
-                <Link to="/cart" className="relative text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors p-1">
-                  <ShoppingCartIcon className="h-5 w-5 lg:h-6 lg:w-6" />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] rounded-full h-5 w-5 flex items-center justify-center shadow-md">
-                      {cartCount > 9 ? '9+' : cartCount}
-                    </span>
-                  )}
-                </Link>
-
-                {/* User Menu */}
-                <Menu as="div" className="relative">
-                  <Menu.Button className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors focus:outline-none">
-                    <img
-                      src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name || user?.email)}&background=2563EB&color=fff&size=32`}
-                      alt={user?.full_name}
-                      className="h-8 w-8 rounded-full object-cover border-2 border-transparent hover:border-blue-600 transition-all"
-                    />
-                    <span className="text-sm font-medium hidden xl:block">
-                      {user?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}
-                    </span>
-                  </Menu.Button>
-                  
-                  <Transition
-                    as={Fragment}
-                    enter="transition ease-out duration-100"
-                    enterFrom="transform opacity-0 scale-95"
-                    enterTo="transform opacity-100 scale-100"
-                    leave="transition ease-in duration-75"
-                    leaveFrom="transform opacity-100 scale-100"
-                    leaveTo="transform opacity-0 scale-95"
-                  >
-                    <Menu.Items className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      <div className="px-4 py-3 border-b dark:border-gray-700">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                          {user?.full_name || user?.email}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {user?.role?.toUpperCase()}
-                        </p>
-                      </div>
-                      <Menu.Item>
-                        {({ active }) => (
-                          <Link to="/profile" className={`${active ? 'bg-gray-100 dark:bg-gray-700' : ''} block px-4 py-2 text-sm text-gray-700 dark:text-gray-300`}>
-                            Profile
-                          </Link>
-                        )}
-                      </Menu.Item>
-                      <Menu.Item>
-                        {({ active }) => (
-                          <Link to="/orders" className={`${active ? 'bg-gray-100 dark:bg-gray-700' : ''} block px-4 py-2 text-sm text-gray-700 dark:text-gray-300`}>
-                            My Orders
-                          </Link>
-                        )}
-                      </Menu.Item>
-                      <Menu.Item>
-                        {({ active }) => (
-                          <Link to="/wishlist" className={`${active ? 'bg-gray-100 dark:bg-gray-700' : ''} block px-4 py-2 text-sm text-gray-700 dark:text-gray-300`}>
-                            Wishlist
-                          </Link>
-                        )}
-                      </Menu.Item>
-                      <div className="border-t dark:border-gray-700">
-                        <Menu.Item>
-                          {({ active }) => (
-                            <button
-                              onClick={handleLogout}
-                              className={`${active ? 'bg-gray-100 dark:bg-gray-700' : ''} block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400`}
-                            >
-                              Logout
-                            </button>
-                          )}
-                        </Menu.Item>
-                      </div>
-                    </Menu.Items>
-                  </Transition>
-                </Menu>
+                {cartLink}
               </>
-            ) : (
-              // Public Nav (Not logged in)
-              <div className="flex items-center space-x-4">
-                <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors font-medium text-sm lg:text-base">
+            )}
+          </div>
+
+          {isUser ? (
+            <Menu as="div" className="relative">
+              <Menu.Button className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 focus:outline-none">
+                <img
+                  src={avatarUrl(user, 32)}
+                  alt=""
+                  className="h-8 w-8 rounded-full object-cover border-2 border-transparent hover:border-blue-600"
+                />
+                <span className="text-sm font-medium hidden xl:block max-w-[8rem] truncate">
+                  {user?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}
+                </span>
+              </Menu.Button>
+              <Transition
+                as={Fragment}
+                enter="transition ease-out duration-100"
+                enterFrom="transform opacity-0 scale-95"
+                enterTo="transform opacity-100 scale-100"
+                leave="transition ease-in duration-75"
+                leaveFrom="transform opacity-100 scale-100"
+                leaveTo="transform opacity-0 scale-95"
+              >
+                <Menu.Items className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 ring-1 ring-black/5 focus:outline-none">
+                  <div className="px-4 py-3 border-b dark:border-gray-700">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user?.full_name || user?.email}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                  </div>
+                  {[
+                    ['/profile', 'Profile'],
+                    ['/orders', 'My Orders'],
+                    ['/wishlist', 'Wishlist'],
+                    ['/notifications', 'Notifications'],
+                  ].map(([to, label]) => (
+                    <Menu.Item key={to}>
+                      {({ active }) => (
+                        <Link
+                          to={to}
+                          className={`${active ? 'bg-gray-100 dark:bg-gray-700' : ''} block px-4 py-2 text-sm text-gray-700 dark:text-gray-300`}
+                        >
+                          {label}
+                        </Link>
+                      )}
+                    </Menu.Item>
+                  ))}
+                  <div className="border-t dark:border-gray-700">
+                    <Menu.Item>
+                      {({ active }) => (
+                        <button
+                          onClick={handleLogout}
+                          className={`${active ? 'bg-gray-100 dark:bg-gray-700' : ''} block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400`}
+                        >
+                          Logout
+                        </button>
+                      )}
+                    </Menu.Item>
+                  </div>
+                </Menu.Items>
+              </Transition>
+            </Menu>
+          ) : (
+            !isAuthenticated && (
+              <div className="flex items-center gap-2 lg:gap-3">
+                <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium text-sm lg:text-base px-2">
                   Login
                 </Link>
-                <Link to="/register" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-md hover:shadow-lg">
-                  Sign Up 🇵🇰
+                <Link to="/register" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm whitespace-nowrap">
+                  Sign Up
                 </Link>
               </div>
-            )}
-          </div>
-
-          {/* Mobile Menu Toggle + Icons */}
-          <div className="flex items-center gap-2 md:hidden">
-            {/* Mobile Cart Icon */}
-            {isUser && (
-              <Link to="/cart" className="relative text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors p-1">
-                <ShoppingCartIcon className="h-6 w-6" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] rounded-full h-5 w-5 flex items-center justify-center shadow-md">
-                    {cartCount > 9 ? '9+' : cartCount}
-                  </span>
-                )}
-              </Link>
-            )}
-
-            {/* Mobile Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors p-1 md:hidden"
-              aria-label="Toggle theme"
-            >
-              {isDarkMode ? <SunIcon className="h-6 w-6" /> : <MoonIcon className="h-6 w-6" />}
-            </button>
-
-            {/* Hamburger Menu Button */}
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors p-1"
-              aria-label="Toggle menu"
-            >
-              {isMenuOpen ? <XMarkIcon className="h-7 w-7" /> : <Bars3Icon className="h-7 w-7" />}
-            </button>
-          </div>
+            )
+          )}
         </div>
 
-        {/* Mobile Menu - Full Screen Overlay Style */}
-        <Transition
-          show={isMenuOpen && isUser}
-          as={Fragment}
-          enter="transition ease-out duration-200"
-          enterFrom="transform opacity-0 -translate-y-4"
-          enterTo="transform opacity-100 translate-y-0"
-          leave="transition ease-in duration-150"
-          leaveFrom="transform opacity-100 translate-y-0"
-          leaveTo="transform opacity-0 -translate-y-4"
-        >
-          <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 py-4 px-4">
-            {/* Mobile Search */}
-            <form onSubmit={handleSearch} className="relative mb-4">
+        {/* Mobile controls */}
+        <div className="flex items-center gap-1 md:hidden">
+          {isUser && cartLink}
+          {themeButton}
+          <button
+            onClick={() => setIsMenuOpen((open) => !open)}
+            className={iconButtonClass}
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMenuOpen}
+          >
+            {isMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      <Transition
+        show={isMenuOpen}
+        as={Fragment}
+        enter="transition ease-out duration-200"
+        enterFrom="opacity-0 -translate-y-2"
+        enterTo="opacity-100 translate-y-0"
+        leave="transition ease-in duration-150"
+        leaveFrom="opacity-100 translate-y-0"
+        leaveTo="opacity-0 -translate-y-2"
+      >
+        <div className="md:hidden border-t border-gray-200 dark:border-gray-800 py-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
+          {isUser && (
+            <form onSubmit={handleSearch} className="relative mb-4" role="search">
               <input
-                type="text"
+                type="search"
                 placeholder="Search biryani, nihari..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2.5 pl-10 rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 text-sm"
+                aria-label="Search food"
+                className="w-full px-4 py-2.5 pl-10 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 text-sm"
               />
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-3" />
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             </form>
+          )}
 
-            {/* Mobile Navigation Links */}
-            <div className="space-y-1">
-              <Link 
-                to="/restaurants" 
-                className="block px-3 py-2.5 text-gray-700 dark:text-gray-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors text-base font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                🏪 Restaurants
-              </Link>
-              <Link 
-                to="/products" 
-                className="block px-3 py-2.5 text-gray-700 dark:text-gray-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors text-base font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                🍽️ Products
-              </Link>
-              <Link 
-                to="/wishlist" 
-                className="block px-3 py-2.5 text-gray-700 dark:text-gray-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors text-base font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                ❤️ Wishlist
-              </Link>
-              <Link 
-                to="/orders" 
-                className="block px-3 py-2.5 text-gray-700 dark:text-gray-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors text-base font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                📦 My Orders
-              </Link>
-              <Link 
-                to="/profile" 
-                className="block px-3 py-2.5 text-gray-700 dark:text-gray-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors text-base font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                👤 Profile
-              </Link>
+          <div className="space-y-1">
+            <Link to="/restaurants" className={mobileLinkClass}>Restaurants</Link>
+            <Link to="/products" className={mobileLinkClass}>Products</Link>
+            <Link to="/offers" className={mobileLinkClass}>Offers</Link>
+            {isUser && (
+              <>
+                <Link to="/wishlist" className={mobileLinkClass}>Wishlist</Link>
+                <Link to="/orders" className={mobileLinkClass}>My Orders</Link>
+                <Link to="/notifications" className={mobileLinkClass}>Notifications</Link>
+                <Link to="/profile" className={mobileLinkClass}>Profile</Link>
+              </>
+            )}
+          </div>
 
-              {/* User Info */}
-              {user && (
-                <div className="px-3 py-3 mt-2 border-t border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name || user?.email)}&background=2563EB&color=fff&size=40`}
-                      alt={user?.full_name}
-                      className="h-10 w-10 rounded-full object-cover border-2 border-blue-200 dark:border-blue-800"
-                    />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {user?.full_name || user?.email}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {user?.role?.toUpperCase()}
-                      </p>
-                    </div>
-                  </div>
+          {isUser ? (
+            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800">
+              <div className="flex items-center gap-3 px-3 py-2">
+                <img src={avatarUrl(user, 40)} alt="" className="h-10 w-10 rounded-full object-cover" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user?.full_name || user?.email}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
                 </div>
-              )}
-
-              {/* Logout Button */}
+              </div>
               <button
                 onClick={handleLogout}
-                className="block w-full text-left px-3 py-2.5 text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-base font-medium mt-1"
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
               >
-                <ArrowRightOnRectangleIcon className="inline h-5 w-5 mr-2" />
+                <ArrowRightOnRectangleIcon className="h-5 w-5" />
                 Logout
               </button>
             </div>
-          </div>
-        </Transition>
-
-        {/* Public Nav Mobile (Not logged in) */}
-        {!isAuthenticated && isMenuOpen && (
-          <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 py-4 px-4">
-            <div className="space-y-3">
-              <Link 
-                to="/login" 
-                className="block w-full text-center px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:text-blue-600 hover:border-blue-600 rounded-lg transition-colors text-base font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Login
-              </Link>
-              <Link 
-                to="/register" 
-                className="block w-full text-center px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-base font-medium shadow-md"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Sign Up 🇵🇰
-              </Link>
-            </div>
-          </div>
-        )}
-      </div>
-    </nav>
+          ) : (
+            !isAuthenticated && (
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <Link
+                  to="/login"
+                  className="text-center px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-blue-600 hover:text-blue-600 rounded-lg font-medium"
+                >
+                  Login
+                </Link>
+                <Link to="/register" className="text-center px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm">
+                  Sign Up
+                </Link>
+              </div>
+            )
+          )}
+        </div>
+      </Transition>
+    </>
   );
 };
 

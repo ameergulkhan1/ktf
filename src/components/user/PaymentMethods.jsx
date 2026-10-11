@@ -366,7 +366,7 @@ const PaymentMethods = () => {
                   </div>
                 </div>
                 {method.is_default && (
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded flex items-center gap-1">
+                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded flex items-center gap-1 dark:bg-green-900/30 dark:text-green-300">
                     <FiCheck className="w-3 h-3" /> Default
                   </span>
                 )}
@@ -383,13 +383,13 @@ const PaymentMethods = () => {
                 )}
                 <button
                   onClick={() => handleEdit(method)}
-                  className="flex-1 text-xs px-3 py-2 border border-blue-300 text-blue-700 rounded hover:bg-blue-50 transition flex items-center justify-center gap-1"
+                  className="flex-1 text-xs px-3 py-2 border border-blue-300 text-blue-700 rounded hover:bg-blue-50 transition flex items-center justify-center gap-1 dark:text-blue-300"
                 >
                   <FiEdit2 className="w-3 h-3" /> Edit
                 </button>
                 <button
                   onClick={() => handleDelete(method.id)}
-                  className="flex-1 text-xs px-3 py-2 border border-red-300 text-red-700 rounded hover:bg-red-50 transition flex items-center justify-center gap-1"
+                  className="flex-1 text-xs px-3 py-2 border border-red-300 text-red-700 rounded hover:bg-red-50 transition flex items-center justify-center gap-1 dark:text-red-300"
                 >
                   <FiTrash2 className="w-3 h-3" /> Delete
                 </button>

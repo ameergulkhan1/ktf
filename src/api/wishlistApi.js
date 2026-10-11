@@ -1,7 +1,7 @@
 // src/api/wishlistApi.js
 import axiosInstance from './axiosConfig';
 
-const API_URL = '/api/wishlist';
+const API_URL = '/wishlist';
 
 export const wishlistApi = {
   // Get wishlist

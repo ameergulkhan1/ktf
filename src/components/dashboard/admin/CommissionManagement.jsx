@@ -39,42 +39,42 @@ const CommissionManagement = () => {
   }
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-sm">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Commission Management</h2>
+    <div className="m-4 sm:m-6 p-4 sm:p-6 bg-white rounded-xl shadow-sm dark:bg-gray-800">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 dark:text-gray-100">Commission Management</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-blue-50 p-4 rounded-lg">
+        <div className="bg-blue-50 p-4 rounded-lg dark:bg-blue-900/20">
           <p className="text-sm text-blue-600">Total Commission</p>
-          <p className="text-2xl font-bold text-blue-700"></p>
+          <p className="text-2xl font-bold text-blue-700 dark:text-blue-300"></p>
         </div>
-        <div className="bg-green-50 p-4 rounded-lg">
+        <div className="bg-green-50 p-4 rounded-lg dark:bg-green-900/20">
           <p className="text-sm text-green-600">This Period</p>
-          <p className="text-2xl font-bold text-green-700"></p>
+          <p className="text-2xl font-bold text-green-700 dark:text-green-300"></p>
         </div>
-        <div className="bg-yellow-50 p-4 rounded-lg">
+        <div className="bg-yellow-50 p-4 rounded-lg dark:bg-yellow-900/20">
           <p className="text-sm text-yellow-600">Pending Withdrawals</p>
-          <p className="text-2xl font-bold text-yellow-700">{withdrawals?.length || 0}</p>
+          <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">{withdrawals?.length || 0}</p>
         </div>
       </div>
 
       {withdrawals && withdrawals.length > 0 ? (
         <div className="overflow-x-auto">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Pending Withdrawals</h3>
+          <h3 className="text-lg font-semibold text-gray-700 mb-4 dark:text-gray-300">Pending Withdrawals</h3>
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Vendor</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Amount</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Date</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Actions</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Vendor</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Amount</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Date</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {withdrawals.map((w) => (
-                <tr key={w.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-800">{w.vendor_name || 'Unknown'}</td>
-                  <td className="px-4 py-3 text-sm font-bold text-gray-800"></td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{new Date(w.created_at).toLocaleDateString()}</td>
+                <tr key={w.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{w.vendor_name || 'Unknown'}</td>
+                  <td className="px-4 py-3 text-sm font-bold text-gray-800 dark:text-gray-100"></td>
+                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{new Date(w.created_at).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-sm">
                     <button
                       onClick={() => handleProcessWithdrawal(w.id, 'completed')}
@@ -95,7 +95,7 @@ const CommissionManagement = () => {
           </table>
         </div>
       ) : (
-        <div className="text-center py-8 text-gray-500">No pending withdrawals</div>
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">No pending withdrawals</div>
       )}
     </div>
   );

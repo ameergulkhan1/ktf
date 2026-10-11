@@ -7,6 +7,8 @@ import { orderApi } from '../../api/orderApi';
 import { FiArrowLeft, FiCreditCard, FiMapPin, FiUser, FiPhone, FiCheckCircle } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import axiosInstance from '../../api/axiosConfig';
+import { calculateTotals, PRICING } from '../../config/site';
+import { formatPrice } from '../../utils/format';
 
 const safeNumber = (value, fallback = 0) => {
   const num = parseFloat(value);
@@ -42,12 +44,8 @@ const Checkout = () => {
   // "Free" above 50 and 5.00 otherwise, while the payload posted to /api/orders added a
   // flat 2.99 -- so the customer was always charged a different amount from the total
   // they had just agreed to (2.99 more on a free-delivery order). Both now read these.
-  const DELIVERY_FEE_THRESHOLD = 50;
-  const DELIVERY_FEE = 5;
-  const TAX_RATE = 0.1;
-  const deliveryFee = cartTotal > DELIVERY_FEE_THRESHOLD ? 0 : DELIVERY_FEE;
-  const taxAmount = cartTotal * TAX_RATE;
-  const grandTotal = cartTotal + deliveryFee + taxAmount;
+  // The rules themselves live in config/site.js and are shared with the cart page.
+  const { deliveryFee, tax: taxAmount, total: grandTotal } = calculateTotals(cartTotal);
   
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -144,7 +142,9 @@ const Checkout = () => {
         postal_code: formData.postal_code,
         landmark: formData.landmark,
         phone: formData.phone,
-        delivery_instructions: formData.notes
+        delivery_instructions: formData.notes,
+        // The selected method was never sent, so every order was recorded without one.
+        payment_method: formData.payment_method
       };
 
       console.log('📦 Order data:', orderData);
@@ -172,11 +172,11 @@ const Checkout = () => {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-2xl mx-auto text-center">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 dark:bg-green-900/30">
             <FiCheckCircle className="w-10 h-10 text-green-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            Order Placed Successfully! 🇵🇰
+            Order Placed Successfully!
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-2">
             Thank you for your order. Your order number is:
@@ -228,20 +228,20 @@ const Checkout = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="container-custom py-6 sm:py-8">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Link to="/cart" className="text-gray-500 hover:text-blue-600 transition">
             <FiArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">🇵🇰 Checkout</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Checkout</h1>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Order Summary */}
           <div className="lg:w-1/3 order-2 lg:order-1">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 sticky top-4 border border-gray-200 dark:border-gray-700">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-5 sm:p-6 lg:sticky lg:top-24 border border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
                 Order Summary
               </h2>
@@ -258,7 +258,7 @@ const Checkout = () => {
                       </p>
                     </div>
                     <span className="font-semibold text-gray-900 dark:text-white">
-                      ${(safeNumber(item.price) * safeNumber(item.quantity)).toFixed(2)}
+                      {formatPrice(safeNumber(item.price) * safeNumber(item.quantity))}
                     </span>
                   </div>
                 ))}
@@ -267,20 +267,20 @@ const Checkout = () => {
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Subtotal ({itemCount} items)</span>
-                  <span>${cartTotal.toFixed(2)}</span>
+                  <span>{formatPrice(cartTotal)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Delivery Fee</span>
-                  <span>{deliveryFee === 0 ? 'Free' : `$${deliveryFee.toFixed(2)}`}</span>
+                  <span>{deliveryFee === 0 ? 'Free' : formatPrice(deliveryFee)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                  <span>Tax (10%)</span>
-                  <span>${taxAmount.toFixed(2)}</span>
+                  <span>Tax ({Math.round(PRICING.taxRate * 100)}%)</span>
+                  <span>{formatPrice(taxAmount)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-gray-700">
                   <span>Total</span>
                   <span className="text-blue-600">
-                    ${grandTotal.toFixed(2)}
+                    {formatPrice(grandTotal)}
                   </span>
                 </div>
               </div>
@@ -289,7 +289,7 @@ const Checkout = () => {
 
           {/* Checkout Form */}
           <div className="lg:w-2/3 order-1 lg:order-2">
-            <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 sm:p-6">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <FiUser className="w-5 h-5 text-blue-600" />
                 Delivery Details
@@ -341,7 +341,7 @@ const Checkout = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       City <span className="text-red-500">*</span>
@@ -443,8 +443,8 @@ const Checkout = () => {
                     Payment Method
                   </label>
                   <div className="space-y-2">
-                    <label className="flex items-center p-3 border border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer transition"
-                      style={{borderColor: formData.payment_method === 'cash' ? '#2563EB' : '', backgroundColor: formData.payment_method === 'cash' ? '#eff6ff' : ''}}
+                    <label className="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 cursor-pointer transition data-[selected=true]:border-blue-600 data-[selected=true]:bg-blue-50 dark:data-[selected=true]:bg-blue-900/30"
+                      data-selected={formData.payment_method === 'cash'}
                     >
                       <input
                         type="radio"
@@ -456,15 +456,16 @@ const Checkout = () => {
                       />
                       <div className="ml-3 flex-1">
                         <span className="font-medium text-gray-900 dark:text-white">Cash on Delivery</span>
-                        <p className="text-xs text-gray-500">Pay when your order arrives</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Pay when your order arrives</p>
                       </div>
                     </label>
 
                     {paymentMethods.filter(m => m.method_type === 'card').length > 0 && (
-                      <optgroup label="Card Payments" className="block">
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 pt-2">Saved cards</p>
                         {paymentMethods.filter(m => m.method_type === 'card').map((method) => (
-                          <label key={method.id} className="flex items-center p-3 border border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer transition"
-                            style={{borderColor: formData.payment_method === `card-${method.id}` ? '#2563EB' : '', backgroundColor: formData.payment_method === `card-${method.id}` ? '#eff6ff' : ''}}
+                          <label key={method.id} className="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 cursor-pointer transition data-[selected=true]:border-blue-600 data-[selected=true]:bg-blue-50 dark:data-[selected=true]:bg-blue-900/30"
+                      data-selected={formData.payment_method === `card-${method.id}`}
                           >
                             <input
                               type="radio"
@@ -478,19 +479,20 @@ const Checkout = () => {
                               <span className="font-medium text-gray-900 dark:text-white">
                                 {method.card_brand?.toUpperCase()} •••• {method.card_last_four}
                               </span>
-                              <p className="text-xs text-gray-500">Expires {method.card_expiry}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Expires {method.card_expiry}</p>
                             </div>
-                            {method.is_default && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Default</span>}
+                            {method.is_default && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded dark:bg-green-900/30 dark:text-green-300">Default</span>}
                           </label>
                         ))}
-                      </optgroup>
+                      </div>
                     )}
 
                     {paymentMethods.filter(m => m.method_type === 'bank_transfer').length > 0 && (
-                      <optgroup label="Bank Transfers" className="block">
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 pt-2">Bank transfer</p>
                         {paymentMethods.filter(m => m.method_type === 'bank_transfer').map((method) => (
-                          <label key={method.id} className="flex items-center p-3 border border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer transition"
-                            style={{borderColor: formData.payment_method === `bank-${method.id}` ? '#2563EB' : '', backgroundColor: formData.payment_method === `bank-${method.id}` ? '#eff6ff' : ''}}
+                          <label key={method.id} className="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 cursor-pointer transition data-[selected=true]:border-blue-600 data-[selected=true]:bg-blue-50 dark:data-[selected=true]:bg-blue-900/30"
+                      data-selected={formData.payment_method === `bank-${method.id}`}
                           >
                             <input
                               type="radio"
@@ -504,17 +506,17 @@ const Checkout = () => {
                               <span className="font-medium text-gray-900 dark:text-white">
                                 {method.bank_name} - {method.account_holder_name}
                               </span>
-                              <p className="text-xs text-gray-500">Transfer to bank account</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Transfer to bank account</p>
                             </div>
                           </label>
                         ))}
-                      </optgroup>
+                      </div>
                     )}
                   </div>
 
                   {paymentMethods.length === 0 && formData.payment_method !== 'cash' && (
                     <p className="text-xs text-gray-500 mt-3">
-                      No payment methods added. <Link to="/profile/payment-methods" className="text-blue-600 hover:text-blue-700">Add payment method</Link>
+                      No payment methods added. <Link to="/profile" className="text-blue-600 hover:text-blue-700">Add payment method</Link>
                     </p>
                   )}
                 </div>
@@ -533,7 +535,7 @@ const Checkout = () => {
                 ) : (
                   <>
                     <FiCreditCard className="w-5 h-5" />
-                    Place Order 🇵🇰
+                    Place Order
                   </>
                 )}
               </button>

@@ -59,6 +59,12 @@ export const authApi = {
     }
   },
 
+  // Update own profile - PUT /api/auth/profile (name, phone, address, city)
+  updateProfile: async (data) => {
+    const response = await axiosInstance.put('/auth/profile', data);
+    return response.data;
+  },
+
   // Get profile - GET /api/auth/profile
   getProfile: async () => {
     try {

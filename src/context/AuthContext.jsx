@@ -262,7 +262,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ProfilePage called updateUser(), which this context never provided, so pressing Save
+  // threw and blanked the page. This saves to the API and refreshes the stored user.
+  const updateUser = async (changes) => {
+    const response = await authApi.updateProfile(changes);
+    if (response?.success && response.user) {
+      const merged = { ...user, ...response.user };
+      setUser(merged);
+      localStorage.setItem('user', JSON.stringify(merged));
+    }
+    return response;
+  };
+
   const value = {
+    updateUser,
     user,
     loading,
     isAuthenticated,

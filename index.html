@@ -2,53 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FoodHub - Food Delivery</title>
-    <meta name="description" content="Order delicious food from the best restaurants" />
-    
-    <!-- ✅ Prevent console errors from showing in production -->
-    <script>
-      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-        // Disable console in production
-        window.console = {
-          log: function() {},
-          info: function() {},
-          warn: function() {},
-          error: function() {},
-          debug: function() {},
-          table: function() {},
-          group: function() {},
-          groupEnd: function() {},
-          time: function() {},
-          timeEnd: function() {},
-          count: function() {},
-          trace: function() {},
-          assert: function() {},
-          dir: function() {},
-          dirxml: function() {},
-          groupCollapsed: function() {},
-          memory: function() {},
-          profile: function() {},
-          profileEnd: function() {},
-          timeStamp: function() {},
-          clear: function() {}
-        };
-        
-        // Prevent errors from showing
-        window.addEventListener('error', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }, true);
-        
-        window.addEventListener('unhandledrejection', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }, true);
-      }
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>KTF - Authentic Pakistani Food Delivery</title>
+    <meta name="description" content="Order biryani, nihari, BBQ and more from the best desi restaurants near you, delivered to your door." />
+    <meta name="theme-color" content="#2563EB" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="KTF" />
+    <meta property="og:title" content="KTF - Authentic Pakistani Food Delivery" />
+    <meta property="og:description" content="Order biryani, nihari, BBQ and more from the best desi restaurants near you." />
+    <meta property="og:image" content="/icon-192.png" />
+
+    <!-- Console silencing in production is done once, in src/main.jsx. The duplicate inline
+         script that used to sit here also disabled the console on any preview host. -->
   </head>
   <body>
     <div id="root"></div>

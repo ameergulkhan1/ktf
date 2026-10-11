@@ -3,110 +3,67 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowRight, FiCalendar, FiUser } from 'react-icons/fi';
+import { blogPosts } from '../../data/blogPosts';
 
-const blogPosts = [
-  {
-    id: 1,
-    title: '10 Healthy Food Habits to Start Today',
-    excerpt: 'Discover simple and effective ways to improve your eating habits for a healthier lifestyle.',
-    image: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=800&q=80',
-    author: 'Dr. Nutrition',
-    date: 'Dec 15, 2024',
-    category: 'Health',
-  },
-  {
-    id: 2,
-    title: 'The Best Pizza Places in Town',
-    excerpt: 'Explore our top picks for the most delicious and authentic pizza restaurants near you.',
-    image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80',
-    author: 'Food Critic',
-    date: 'Dec 12, 2024',
-    category: 'Reviews',
-  },
-  {
-    id: 3,
-    title: 'Cooking Tips for Beginners',
-    excerpt: 'Essential kitchen tips and techniques to help you cook like a pro from day one.',
-    image: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=800&q=80',
-    author: 'Chef Mike',
-    date: 'Dec 10, 2024',
-    category: 'Cooking',
-  },
-];
+export const BlogCard = ({ post, index = 0 }) => (
+  <motion.article
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ delay: index * 0.1 }}
+    className="bg-gray-50 dark:bg-gray-700/50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col"
+  >
+    <Link to={`/blog/${post.id}`} className="block">
+      <img src={post.image} alt={post.title} loading="lazy" className="w-full h-48 sm:h-56 object-cover" />
+    </Link>
+    <div className="p-5 sm:p-6 flex flex-col flex-1">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500 dark:text-gray-400 mb-3">
+        <span className="inline-flex items-center gap-1">
+          <FiCalendar className="w-3 h-3" />
+          {post.date}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <FiUser className="w-3 h-3" />
+          {post.author}
+        </span>
+      </div>
+      <span className="self-start text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+        {post.category}
+      </span>
+      <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mt-2 mb-3 line-clamp-2">{post.title}</h3>
+      <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 line-clamp-2">{post.excerpt}</p>
+      <Link
+        to={`/blog/${post.id}`}
+        className="mt-auto text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium inline-flex items-center gap-1"
+      >
+        Read More
+        <FiArrowRight className="w-4 h-4" />
+      </Link>
+    </div>
+  </motion.article>
+);
 
 const BlogSection = () => {
   return (
-    <section className="py-20 bg-white dark:bg-gray-800 transition-colors duration-200">
+    <section className="py-12 sm:py-20 bg-white dark:bg-gray-800">
       <div className="container-custom">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="flex justify-between items-center mb-8"
-        >
+        <div className="section-header">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-              📝 Food Blog
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
-              Latest food tips, reviews, and recipes
-            </p>
+            <h2 className="section-title">📝 Food Blog</h2>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">Latest food tips, reviews, and recipes</p>
           </div>
           <Link
             to="/blog"
-            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium flex items-center gap-1"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium inline-flex items-center gap-1 shrink-0"
           >
             View All Posts
             <FiArrowRight className="w-4 h-4" />
           </Link>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {blogPosts.map((post, index) => (
-            <motion.article
-              key={post.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -5 }}
-              className="bg-gray-50 dark:bg-gray-700/50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all"
-            >
-              <img
-                src={post.image}
-                alt={post.title}
-                className="w-full h-56 object-cover"
-              />
-              <div className="p-6">
-                <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mb-3">
-                  <span className="inline-flex items-center gap-1">
-                    <FiCalendar className="w-3 h-3" />
-                    {post.date}
-                  </span>
-                  <span className="w-1 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
-                  <span className="inline-flex items-center gap-1">
-                    <FiUser className="w-3 h-3" />
-                    {post.author}
-                  </span>
-                </div>
-                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
-                  {post.category}
-                </span>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-2 mb-3 line-clamp-2">
-                  {post.title}
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 line-clamp-2">
-                  {post.excerpt}
-                </p>
-                <Link
-                  to={`/blog/${post.id}`}
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium inline-flex items-center gap-1"
-                >
-                  Read More
-                  <FiArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </motion.article>
+            <BlogCard key={post.id} post={post} index={index} />
           ))}
         </div>
       </div>

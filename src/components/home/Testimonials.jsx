@@ -7,7 +7,7 @@ const testimonials = [
   {
     id: 1,
     name: 'Ahmed Khan',
-    role: 'Food Lover 🇵🇰',
+    role: 'Food Lover',
     image: 'https://i.pravatar.cc/100?img=1',
     rating: 5,
     text: 'Absolutely amazing desi food delivery service! The biryani arrived hot and fresh. Highly recommend!',
@@ -32,16 +32,16 @@ const testimonials = [
 
 const Testimonials = () => {
   return (
-    <section className="py-20 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 transition-colors duration-200">
+    <section className="py-12 sm:py-20 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 transition-colors duration-200">
       <div className="container-custom">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center max-w-2xl mx-auto mb-12"
+          className="text-center max-w-2xl mx-auto mb-8 sm:mb-12"
         >
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            🇵🇰 What Our Customers Say
+          <h2 className="section-title">
+            What Our Customers Say
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mt-2">
             Real reviews from real people who love our desi service

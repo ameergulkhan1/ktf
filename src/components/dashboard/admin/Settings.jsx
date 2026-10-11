@@ -36,9 +36,9 @@ const Settings = () => {
   }
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-sm">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Settings</h2>
-      <div className="text-center py-8 text-gray-500">
+    <div className="m-4 sm:m-6 p-4 sm:p-6 bg-white rounded-xl shadow-sm dark:bg-gray-800">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 dark:text-gray-100">Settings</h2>
+      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
         Settings management coming soon...
       </div>
     </div>

@@ -1,16 +1,30 @@
 ﻿// src/components/orders/OrderDetail.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useOrder } from '../../hooks/useOrders';
 import Loader from '../common/Loader';
 import { format } from 'date-fns';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
+import { ORDER_STEPS, statusBadge, statusLabel, stepIndex, canCustomerCancel } from '../../utils/orderStatus';
+import { formatPrice, formatDiscount } from '../../utils/format';
 
 const OrderDetail = () => {
   const { id } = useParams();
-  const { order, loading, error } = useOrder(id);
+  const { order, loading, error, cancelOrder } = useOrder(id);
+  const [cancelling, setCancelling] = useState(false);
 
-  if (loading) {
+  const handleCancel = async () => {
+    if (!window.confirm('Cancel this order?')) return;
+    setCancelling(true);
+    const response = await cancelOrder('Cancelled by customer');
+    setCancelling(false);
+    if (response?.success) toast.success('Order cancelled');
+    else toast.error(response?.message || 'This order can no longer be cancelled');
+  };
+
+
+  if (loading && !order) {
     return (
       <div className="container-custom py-8">
         <div className="flex justify-center items-center h-64">
@@ -45,21 +59,9 @@ const OrderDetail = () => {
     );
   }
 
-  const getStatusColor = (status) => {
-    const colors = {
-      'pending': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-      'processing': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-      'shipped': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400',
-      'delivered': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
-      'cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-      'refunded': 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-  };
-
   const totalAmount = Number(order.total) || Number(order.total_amount) || 0;
-  const statusSteps = ['pending', 'processing', 'shipped', 'delivered'];
-  const currentStep = statusSteps.indexOf(order.status);
+  const currentStep = stepIndex(order.status || 'pending');
+  const subtotal = Number(order.subtotal) || totalAmount - (Number(order.delivery_fee) || 0) - (Number(order.tax) || 0);
   const orderDate = order.created_at || order.createdAt || new Date();
 
   return (
@@ -75,50 +77,67 @@ const OrderDetail = () => {
 
       {/* Order Header */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-100 dark:border-gray-700">
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Order ID and Status */}
           <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                🇵🇰 Order #{order.order_number || order.id}
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                Order #{order.order_number || order.id}
               </h1>
               <p className="text-gray-500 dark:text-gray-400 mt-1">
                 {format(new Date(orderDate), 'MMMM dd, yyyy h:mm a')}
               </p>
             </div>
-            <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(order.status)}`}>
-              {order.status?.toUpperCase() || 'PENDING'}
+            <span className={`px-4 py-2 rounded-full text-sm font-semibold ${statusBadge(order.status)}`}>
+              {statusLabel(order.status)}
             </span>
           </div>
 
+          {canCustomerCancel(order.status) && (
+            <div className="-mt-2 mb-6">
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 disabled:opacity-50"
+              >
+                {cancelling ? 'Cancelling…' : 'Cancel this order'}
+              </button>
+            </div>
+          )}
+
           {/* Status Tracker */}
-          {order.status !== 'cancelled' && order.status !== 'refunded' && (
+          {order.status !== 'cancelled' && order.status !== 'refunded' && currentStep >= 0 && (
             <div className="mb-8">
-              <div className="flex items-center justify-between">
-                {statusSteps.map((step, index) => (
-                  <div key={step} className="flex-1 flex items-center">
-                    <div className="flex flex-col items-center flex-1">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                        index <= currentStep 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
-                      }`}>
-                        {index + 1}
-                      </div>
-                      <span className={`text-xs mt-1 capitalize ${
-                        index <= currentStep 
-                          ? 'text-gray-900 dark:text-white font-medium' 
-                          : 'text-gray-500 dark:text-gray-400'
-                      }`}>
-                        {step}
-                      </span>
-                    </div>
-                    {index < statusSteps.length - 1 && (
-                      <div className={`flex-1 h-1 ${index < currentStep ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'}`} />
-                    )}
-                  </div>
-                ))}
+              {/* Phones: a single progress bar with the current step named */}
+              <div className="sm:hidden">
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="font-medium text-gray-900 dark:text-white">{statusLabel(ORDER_STEPS[currentStep])}</span>
+                  <span className="text-gray-500 dark:text-gray-400">Step {currentStep + 1} of {ORDER_STEPS.length}</span>
+                </div>
+                <div className="h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                  <div className="h-full bg-blue-600 rounded-full" style={{ width: `${((currentStep + 1) / ORDER_STEPS.length) * 100}%` }} />
+                </div>
               </div>
+              {/* Larger screens: every step */}
+              <ol className="hidden sm:flex items-start">
+                {ORDER_STEPS.map((step, index) => (
+                  <li key={step} className="flex-1 flex flex-col items-center relative">
+                    {index > 0 && (
+                      <span className={`absolute top-4 right-1/2 w-full h-1 -translate-y-1/2 ${index <= currentStep ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'}`} />
+                    )}
+                    <span
+                      className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                        index <= currentStep ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
+                      }`}
+                    >
+                      {index + 1}
+                    </span>
+                    <span className={`text-xs mt-1.5 text-center ${index <= currentStep ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400'}`}>
+                      {statusLabel(step)}
+                    </span>
+                  </li>
+                ))}
+              </ol>
             </div>
           )}
 
@@ -144,7 +163,7 @@ const OrderDetail = () => {
             <div className="space-y-3">
               {(order.items || order.order_items || []).map((item, index) => (
                 <div key={item.id || index} className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     {item.image_url && (
                       <img 
                         src={item.image_url} 
@@ -161,8 +180,8 @@ const OrderDetail = () => {
                       </p>
                     </div>
                   </div>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    ${(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)}
+                  <span className="font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                    {formatPrice(Number(item.price || 0) * Number(item.quantity || 1))}
                   </span>
                 </div>
               ))}
@@ -174,30 +193,30 @@ const OrderDetail = () => {
             <div className="space-y-2">
               <div className="flex justify-between text-gray-600 dark:text-gray-400">
                 <span>Subtotal</span>
-                <span>${totalAmount.toFixed(2)}</span>
+                <span>{formatPrice(subtotal)}</span>
               </div>
               {order.delivery_fee > 0 && (
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Delivery Fee</span>
-                  <span>${Number(order.delivery_fee).toFixed(2)}</span>
+                  <span>{formatPrice(order.delivery_fee)}</span>
                 </div>
               )}
               {order.tax > 0 && (
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Tax</span>
-                  <span>${Number(order.tax).toFixed(2)}</span>
+                  <span>{formatPrice(order.tax)}</span>
                 </div>
               )}
               {order.discount > 0 && (
                 <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
                   <span>Discount</span>
-                  <span>-${Number(order.discount).toFixed(2)}</span>
+                  <span>{formatDiscount(order.discount)}</span>
                 </div>
               )}
               <div className="flex justify-between text-xl font-bold mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <span className="text-gray-900 dark:text-white">Total</span>
                 <span className="text-blue-600">
-                  ${totalAmount.toFixed(2)}
+                  {formatPrice(totalAmount)}
                 </span>
               </div>
             </div>
@@ -232,8 +251,8 @@ const OrderDetail = () => {
                 💳 Payment Information
               </h2>
               <div className="space-y-1 text-gray-600 dark:text-gray-400">
-                <p><span className="font-medium">Method:</span> {order.payment_method}</p>
-                <p><span className="font-medium">Status:</span> {order.payment_status}</p>
+                <p><span className="font-medium">Method:</span> {String(order.payment_method).replace(/_/g, ' ')}</p>
+                <p><span className="font-medium">Status:</span> {order.payment_status || 'pending'}</p>
                 {order.transaction_id && (
                   <p><span className="font-medium">Transaction ID:</span> {order.transaction_id}</p>
                 )}
