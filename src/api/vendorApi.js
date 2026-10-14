@@ -64,6 +64,8 @@ const vendorApi = {
         min_order_amount: parseFloat(data.min_order_amount) || 0,
         delivery_fee: parseFloat(data.delivery_fee) || 0,
         is_open: data.is_open !== undefined ? Boolean(data.is_open) : true,
+        latitude: data.latitude ?? null,
+        longitude: data.longitude ?? null,
         opening_hours: data.opening_hours || {
           monday: { open: '09:00', close: '22:00' },
           tuesday: { open: '09:00', close: '22:00' },
@@ -107,6 +109,8 @@ const vendorApi = {
         min_order_amount: parseFloat(data.min_order_amount) || 0,
         delivery_fee: parseFloat(data.delivery_fee) || 0,
         is_open: data.is_open !== undefined ? Boolean(data.is_open) : true,
+        latitude: data.latitude ?? null,
+        longitude: data.longitude ?? null,
         opening_hours: data.opening_hours || {}
       };
 

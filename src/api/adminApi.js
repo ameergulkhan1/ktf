@@ -1,6 +1,7 @@
 ﻿// src/api/adminApi.js
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { getTokenForRole, clearSession } from '../auth/sessionStore';
 
 // ✅ Use the same base URL as other APIs
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -20,7 +21,8 @@ const adminCache = new Map();
 // Request interceptor
 adminApiInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+    // Admin endpoints always use the admin session, whatever else is signed in.
+    const token = getTokenForRole('admin');
     if (token) {
       config.headers.Authorization = 'Bearer ' + token;
     }
@@ -61,12 +63,9 @@ adminApiInstance.interceptors.response.use(
     });
     
     if (error.response?.status === 401) {
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('adminUser');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      clearSession('admin');
       if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+        window.location.href = '/admin/login';
         toast.error('Session expired. Please login again.');
       }
     }

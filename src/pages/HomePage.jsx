@@ -11,6 +11,7 @@ import HowItWorks from '../components/home/HowItWorks';
 import BlogSection from '../components/home/BlogSection';
 import SpecialOffers from '../components/home/SpecialOffers';
 import StatsSection from '../components/home/StatsSection';
+import AIAdvisorBanner from '../components/home/AIAdvisorBanner';
 // import DownloadApp from '../components/home/DownloadApp';
 
 const HomePage = () => {
@@ -22,6 +23,7 @@ const HomePage = () => {
     >
       <HeroSection />
       <StatsSection />
+      <AIAdvisorBanner />
       <CategorySection />
       <SpecialOffers />
       <PopularProducts />

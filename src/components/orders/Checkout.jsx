@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../hooks/useAuth';
 import { orderApi } from '../../api/orderApi';
-import { FiArrowLeft, FiCreditCard, FiMapPin, FiUser, FiPhone, FiCheckCircle } from 'react-icons/fi';
+import { FiArrowLeft, FiCreditCard, FiMapPin, FiUser, FiPhone, FiCheckCircle, FiCrosshair } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import axiosInstance from '../../api/axiosConfig';
 import { calculateTotals, PRICING } from '../../config/site';
@@ -65,6 +65,30 @@ const Checkout = () => {
     notes: '',
     payment_method: 'cash'
   });
+
+  // Optional device location: lets the server check the restaurant's delivery radius.
+  const [deliveryCoords, setDeliveryCoords] = useState(null);
+  const [locating, setLocating] = useState(false);
+
+  const shareLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Your browser cannot share its location');
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setDeliveryCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocating(false);
+        toast.success('Location added to your order');
+      },
+      () => {
+        setLocating(false);
+        toast.error('Location permission was denied');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   useEffect(() => {
     // Re-run once the user is known: the original mount-only effect fired while
@@ -144,7 +168,8 @@ const Checkout = () => {
         phone: formData.phone,
         delivery_instructions: formData.notes,
         // The selected method was never sent, so every order was recorded without one.
-        payment_method: formData.payment_method
+        payment_method: formData.payment_method,
+        ...(deliveryCoords ? { delivery_lat: deliveryCoords.lat, delivery_lng: deliveryCoords.lng } : {})
       };
 
       console.log('📦 Order data:', orderData);
@@ -405,6 +430,23 @@ const Checkout = () => {
                     className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
                     placeholder="e.g., Near Centaurus Mall"
                   />
+                </div>
+
+                <div className="sm:col-span-2 flex flex-wrap items-center gap-3 rounded-lg bg-gray-50 dark:bg-gray-900/40 p-3">
+                  <button
+                    type="button"
+                    onClick={shareLocation}
+                    disabled={locating}
+                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50"
+                  >
+                    <FiCrosshair className="w-4 h-4" />
+                    {locating ? 'Getting location…' : deliveryCoords ? 'Update my location' : 'Share my location'}
+                  </button>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 flex-1 min-w-[12rem]">
+                    {deliveryCoords
+                      ? 'Location added. We will confirm the restaurant delivers to you.'
+                      : 'Optional: helps the rider find you and confirms you are within the delivery area.'}
+                  </span>
                 </div>
 
                 <div>

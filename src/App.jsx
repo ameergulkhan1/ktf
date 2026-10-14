@@ -40,6 +40,7 @@ const OrderDetail = lazy(() => import('./components/orders/OrderDetail'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const WishlistPage = lazy(() => import('./pages/WishlistPage'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
+const AIAdvisorPage = lazy(() => import('./pages/AIAdvisorPage'));
 
 // ADMIN PAGES
 const AdminLogin = lazy(() => import('./components/auth/AdminLogin'));
@@ -140,6 +141,7 @@ function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/wishlist" element={<WishlistPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/ai-advisor" element={<AIAdvisorPage />} />
             </Route>
           </Route>
 

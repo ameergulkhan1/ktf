@@ -1,13 +1,17 @@
 ﻿// src/components/restaurant/RestaurantDetail.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useRestaurants } from '../../hooks/useRestaurant';
 import { useCart } from '../../context/CartContext';
 import Loader from '../common/Loader';
 import toast from 'react-hot-toast';
 import { formatRating } from '../../utils/format';
-import { FiStar, FiMapPin, FiClock, FiArrowLeft, FiShoppingCart, FiCheckCircle } from 'react-icons/fi';
+import { FiStar, FiMapPin, FiClock, FiArrowLeft, FiShoppingCart, FiCheckCircle, FiNavigation } from 'react-icons/fi';
 import { formatPrice } from '../../utils/format';
+import { directionsUrl, hasCoordinates } from '../../utils/maps';
+
+// Leaflet is only downloaded when a restaurant actually has a pinned location.
+const LocationMap = lazy(() => import('../common/LocationMap'));
 
 const RestaurantDetail = () => {
   const { id } = useParams();
@@ -171,6 +175,36 @@ const RestaurantDetail = () => {
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             {restaurant.description || 'Experience the authentic taste of Pakistan with our delicious desi dishes.'}
           </p>
+
+          {hasCoordinates(restaurant.latitude, restaurant.longitude) && (
+            <section className="mb-8" aria-labelledby="restaurant-location">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <h2 id="restaurant-location" className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <FiMapPin className="w-5 h-5 text-blue-600" /> Location
+                </h2>
+                <a
+                  href={directionsUrl(restaurant.latitude, restaurant.longitude)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm"
+                >
+                  <FiNavigation className="w-4 h-4" /> Get Directions
+                </a>
+              </div>
+              {restaurant.address && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                  {[restaurant.address, restaurant.city].filter(Boolean).join(', ')}
+                </p>
+              )}
+              <Suspense fallback={<div className="h-64 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />}>
+                <LocationMap
+                  latitude={restaurant.latitude}
+                  longitude={restaurant.longitude}
+                  label={restaurant.restaurant_name}
+                />
+              </Suspense>
+            </section>
+          )}
 
           {/* Menu Section */}
           <div className="mt-6">

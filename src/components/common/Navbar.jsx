@@ -14,6 +14,7 @@ import {
   MoonIcon,
   ArrowRightOnRectangleIcon,
   Squares2X2Icon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
 import { Menu, Transition } from '@headlessui/react';
 import ktfLogo from '../../assets/ktflogo.jpeg';
@@ -164,7 +165,12 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-2 lg:gap-5">
           <NavLink to="/restaurants" className={navLinkClass}>Restaurants</NavLink>
           <NavLink to="/products" className={navLinkClass}>Products</NavLink>
-          {!isUser && <NavLink to="/offers" className={navLinkClass}>Offers</NavLink>}
+          <NavLink to="/ai-advisor" className={navLinkClass}>
+            <span className="inline-flex items-center gap-1">
+              <SparklesIcon className="h-4 w-4 text-emerald-500" /> AI Advisor
+            </span>
+          </NavLink>
+          {!isUser && <NavLink to="/offers" className={(state) => `${navLinkClass(state)} hidden lg:inline`}>Offers</NavLink>}
 
           <div className="flex items-center gap-1">
             {themeButton}
@@ -294,6 +300,7 @@ const Navbar = () => {
           <div className="space-y-1">
             <Link to="/restaurants" className={mobileLinkClass}>Restaurants</Link>
             <Link to="/products" className={mobileLinkClass}>Products</Link>
+            <Link to="/ai-advisor" className={mobileLinkClass}>AI Food Advisor</Link>
             <Link to="/offers" className={mobileLinkClass}>Offers</Link>
             {isUser && (
               <>

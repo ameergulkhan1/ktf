@@ -1,9 +1,44 @@
 ﻿// src/components/dashboard/vendor/ManageRestaurant.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { useVendor } from '../../../hooks/useVendor';
 import vendorApi from '../../../api/vendorApi';
 import toast from 'react-hot-toast';
 import Loader from '../../common/Loader';
+import { hasCoordinates } from '../../../utils/maps';
+
+// Leaflet only loads on this page, not in the main bundle.
+const LocationPicker = lazy(() => import('../../common/LocationPicker'));
+
+const APPROVAL_BANNERS = {
+  pending: {
+    className: 'bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-300',
+    title: 'Waiting for admin approval',
+    text: 'Your restaurant is not visible to customers until an admin approves it. You can keep editing the details and menu meanwhile.',
+  },
+  approved: {
+    className: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300',
+    title: 'Approved',
+    text: 'Your restaurant is live on KFT.',
+  },
+  rejected: {
+    className: 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300',
+    title: 'Not approved',
+    text: 'Update your details and save to send the restaurant for review again.',
+  },
+  suspended: {
+    className: 'bg-gray-100 border-gray-300 text-gray-800 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200',
+    title: 'Suspended',
+    text: 'Your restaurant is hidden from customers. Contact KFT support to resolve this.',
+  },
+};
+
+const approvalState = (r) => {
+  if (!r) return null;
+  if (r.status === 'suspended' || r.is_suspended) return 'suspended';
+  if (r.status === 'rejected') return 'rejected';
+  if (r.status === 'approved') return 'approved';
+  return 'pending';
+};
 
 const ManageRestaurant = () => {
   const { profile } = useVendor();
@@ -11,6 +46,7 @@ const ManageRestaurant = () => {
   const [saving, setSaving] = useState(false);
   const [restaurant, setRestaurant] = useState(null);
   const [errors, setErrors] = useState({});
+  const [suggestedAddress, setSuggestedAddress] = useState(null);
   
   const [formData, setFormData] = useState({
     restaurant_name: '',
@@ -28,6 +64,8 @@ const ManageRestaurant = () => {
     min_order_amount: 0,
     delivery_fee: 0,
     is_open: true,
+    latitude: null,
+    longitude: null,
     opening_hours: {
       monday: { open: '09:00', close: '22:00' },
       tuesday: { open: '09:00', close: '22:00' },
@@ -69,6 +107,8 @@ const ManageRestaurant = () => {
           min_order_amount: restData.min_order_amount || 0,
           delivery_fee: restData.delivery_fee || 0,
           is_open: restData.is_open !== undefined ? restData.is_open : true,
+          latitude: restData.latitude ?? null,
+          longitude: restData.longitude ?? null,
           opening_hours: restData.opening_hours || prev.opening_hours
         }));
       }
@@ -116,6 +156,10 @@ const ManageRestaurant = () => {
     if (!formData.address?.trim()) {
       newErrors.address = 'Address is required';
     }
+
+    if (!hasCoordinates(formData.latitude, formData.longitude)) {
+      newErrors.location = 'Pin your restaurant on the map so customers can find it';
+    }
     
     if (formData.delivery_radius < 0) {
       newErrors.delivery_radius = 'Delivery radius must be greater than 0';
@@ -159,7 +203,11 @@ const ManageRestaurant = () => {
       console.log('📥 Save restaurant response:', response);
       
       if (response && response.success) {
-        toast.success(restaurant ? 'Restaurant updated successfully!' : 'Restaurant created successfully!');
+        toast.success(
+          restaurant
+            ? 'Restaurant updated successfully!'
+            : 'Restaurant created! It will appear to customers once an admin approves it.'
+        );
         setRestaurant(response.restaurant);
         
         if (response.restaurant) {
@@ -217,7 +265,20 @@ const ManageRestaurant = () => {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-6 space-y-6 dark:bg-gray-800">
+        {restaurant && APPROVAL_BANNERS[approvalState(restaurant)] && (
+          <div className={`mb-6 rounded-xl border p-4 ${APPROVAL_BANNERS[approvalState(restaurant)].className}`} role="status">
+            <p className="font-semibold">{APPROVAL_BANNERS[approvalState(restaurant)].title}</p>
+            <p className="text-sm mt-1">{APPROVAL_BANNERS[approvalState(restaurant)].text}</p>
+            {approvalState(restaurant) === 'rejected' && restaurant.rejection_reason && (
+              <p className="text-sm mt-1"><span className="font-medium">Reason:</span> {restaurant.rejection_reason}</p>
+            )}
+            {approvalState(restaurant) === 'suspended' && restaurant.suspension_reason && (
+              <p className="text-sm mt-1"><span className="font-medium">Reason:</span> {restaurant.suspension_reason}</p>
+            )}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-4 sm:p-6 space-y-6 dark:bg-gray-800">
           {/* Basic Information */}
           <div className="border-b border-gray-200 pb-6 dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-700 mb-4 dark:text-gray-300">Basic Information</h2>
@@ -396,6 +457,53 @@ const ManageRestaurant = () => {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Map location */}
+          <div className="border-b border-gray-200 pb-6 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-700 mb-1 dark:text-gray-300">
+              Restaurant Location <span className="text-red-500">*</span>
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Customers see this pin with a "Get Directions" button, and it is used to check delivery distance.
+            </p>
+            <Suspense fallback={<div className="h-72 rounded-lg bg-gray-100 dark:bg-gray-700 animate-pulse" />}>
+              <LocationPicker
+                latitude={formData.latitude}
+                longitude={formData.longitude}
+                onChange={({ latitude, longitude }) => {
+                  setFormData((prev) => ({ ...prev, latitude, longitude }));
+                  setErrors((prev) => ({ ...prev, location: '' }));
+                }}
+                onAddressFound={setSuggestedAddress}
+              />
+            </Suspense>
+            {errors.location && <p className="text-red-500 text-xs mt-2">{errors.location}</p>}
+            {suggestedAddress?.address && (
+              <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2 rounded-lg bg-blue-50 p-3 text-sm dark:bg-blue-900/20">
+                <span className="flex-1 text-gray-700 dark:text-gray-300">
+                  Address at this pin: <span className="font-medium">{suggestedAddress.display_name || suggestedAddress.address}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      address: suggestedAddress.address || prev.address,
+                      city: suggestedAddress.city || prev.city,
+                      state: suggestedAddress.state || prev.state,
+                      postal_code: suggestedAddress.postal_code || prev.postal_code,
+                      country: suggestedAddress.country || prev.country,
+                    }));
+                    setErrors((prev) => ({ ...prev, address: '' }));
+                    setSuggestedAddress(null);
+                  }}
+                  className="flex-shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700"
+                >
+                  Use this address
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Delivery Settings */}

@@ -33,6 +33,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
 import Loader from '../common/Loader';
 import ErrorBoundary from '../common/ErrorBoundary';
+import ChatWidget from '../ai/ChatWidget';
 import ktfLogo from '../../assets/ktflogo.jpeg';
 
 const PANELS = {
@@ -225,6 +226,7 @@ const PanelLayout = ({ variant }) => {
           </ErrorBoundary>
         </main>
       </div>
+      <ChatWidget />
     </div>
   );
 };

@@ -142,7 +142,11 @@ export const useCart = () => {
       if (response?.success) {
         // ✅ Optimistic update - update UI immediately
         setItems(prev => {
-          const existingIndex = prev.findIndex(item => item.product_id === productId);
+          // Menu items have no product_id, so matching on it alone merged every dish
+          // into whichever menu item happened to be first in the cart.
+          const existingIndex = prev.findIndex(item =>
+            menuItemId ? item.menu_item_id === menuItemId : item.product_id === productId
+          );
           if (existingIndex >= 0) {
             const updated = [...prev];
             updated[existingIndex] = {
@@ -155,6 +159,7 @@ export const useCart = () => {
           const newItem = {
             id: response.item?.id || Date.now(),
             product_id: productId,
+            menu_item_id: menuItemId,
             quantity: quantity,
             price: price,
             name: name,

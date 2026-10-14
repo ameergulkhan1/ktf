@@ -1,80 +1,57 @@
-﻿// src/context/AuthContext.jsx
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { authApi } from '../api/authApi';
-import axiosInstance from '../api/axiosConfig';
+// src/context/AuthContext.jsx
+import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { authApi } from '../api/authApi';
+import {
+  readAllSessions,
+  saveSession,
+  clearSession,
+  updateSessionUser,
+  roleForPath,
+  roleOfUser,
+  rememberTabRole,
+  migrateLegacySession,
+  isSessionStorageKey,
+} from '../auth/sessionStore';
 
 export const AuthContext = createContext();
 
+// Admin, vendor and customer logins are kept side by side (see auth/sessionStore.js).
+// `user` is whichever of them the current page uses, so every existing consumer of
+// useAuth() keeps working unchanged.
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [sessions, setSessions] = useState(() => {
+    migrateLegacySession();
+    return readAllSessions();
+  });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const { pathname } = useLocation();
   const navigate = useNavigate();
 
+  const activeRole = roleForPath(pathname, sessions);
+  const activeSession = sessions[activeRole];
+  const user = activeSession?.user || null;
+
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const adminToken = localStorage.getItem('adminToken');
-        const token = localStorage.getItem('token');
-        
-        console.log('🔍 Auth init - token exists:', !!token);
-        console.log('🔍 Auth init - adminToken exists:', !!adminToken);
-        
-        if (adminToken) {
-          try {
-            const userData = JSON.parse(localStorage.getItem('adminUser') || '{}');
-            if (userData && (userData.role === 'admin' || userData.role === 'super_admin')) {
-              setUser(userData);
-              setIsAuthenticated(true);
-              axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${adminToken}`;
-              console.log('🔍 Admin user loaded:', userData);
-              setLoading(false);
-              return;
-            }
-          } catch (e) {
-            console.error('Error parsing admin user:', e);
-            localStorage.removeItem('adminToken');
-            localStorage.removeItem('adminUser');
-          }
-        }
-        
-        if (token) {
-          try {
-            const userData = JSON.parse(localStorage.getItem('user') || '{}');
-            if (userData && userData.id) {
-              setUser(userData);
-              setIsAuthenticated(true);
-              axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-              console.log('🔍 User loaded:', userData);
-              setLoading(false);
-              return;
-            }
-          } catch (e) {
-            console.error('Error parsing user:', e);
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-          }
-        }
-        
-        delete axiosInstance.defaults.headers.common['Authorization'];
-        setLoading(false);
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        setLoading(false);
-      }
+    if (activeSession) rememberTabRole(activeRole);
+  }, [activeRole, activeSession]);
+
+  // A login or logout in another tab changes localStorage; pick it up here so this tab
+  // never keeps showing a session that no longer exists.
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (isSessionStorageKey(e.key)) setSessions(readAllSessions());
     };
-    initAuth();
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, []);
+
+  const refreshSessions = useCallback(() => setSessions(readAllSessions()), []);
 
   const register = async (userData) => {
     try {
-      console.log('📝 Register attempt for:', userData.email);
       const response = await authApi.register(userData);
-      console.log('📦 Register response:', response);
-      
       if (response.success) {
         toast.success('Registration successful! Please login.');
         return { success: true, user: response.user };
@@ -82,217 +59,109 @@ export const AuthProvider = ({ children }) => {
       toast.error(response.message || 'Registration failed');
       return { success: false, message: response.message };
     } catch (error) {
-      console.error('❌ Register error:', error);
       const message = error.response?.data?.message || 'Registration failed';
       toast.error(message);
-      return {
-        success: false,
-        message: message
-      };
+      return { success: false, message };
     }
   };
 
-  // ✅ FIXED: Login with proper token handling
+  // Customer and vendor login. The caller decides where to go next.
   const login = async (email, password) => {
+    setIsLoggingIn(true);
     try {
-      setIsLoggingIn(true);
-      console.log('🔐 Login attempt for:', email);
-      
       const response = await authApi.login(email, password);
-      console.log('📦 Login response:', response);
-      
-      if (response.success) {
-        const { token, user } = response;
-        
-        if (!token) {
-          console.error('❌ No token in response!');
-          toast.error('Login failed: No token received');
-          setIsLoggingIn(false);
-          return { success: false, error: 'No token received' };
-        }
-        
-        console.log('✅ Token received:', token.substring(0, 20) + '...');
-        console.log('✅ User role:', user?.role);
-        
-        // ✅ Clear any existing tokens first
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminUser');
-        
-        // ✅ Store token
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        
-        // ✅ Set axios header
-        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        
-        // ✅ Verify storage
-        const storedToken = localStorage.getItem('token');
-        console.log('✅ Token stored:', storedToken ? 'Yes (length: ' + storedToken.length + ')' : 'No');
-        
-        // ✅ Set state
-        setUser(user);
-        setIsAuthenticated(true);
-        
-        toast.success(`Welcome back, ${user.full_name || 'User'}!`);
-        
-        setIsLoggingIn(false);
-        
-        // ✅ Navigate based on role - WITHOUT page refresh
-        // ✅ Use a small delay to ensure everything is set
-        setTimeout(() => {
-          if (user.role === 'admin' || user.role === 'super_admin') {
-            navigate('/admin/dashboard', { replace: true });
-          } else if (user.role === 'vendor') {
-            navigate('/vendor/dashboard', { replace: true });
-          } else {
-            navigate('/', { replace: true });
-          }
-        }, 100);
-        
-        return { success: true, user };
+      if (!response.success || !response.token || !response.user) {
+        const message = response.message || 'Login failed';
+        toast.error(message);
+        return { success: false, error: message };
       }
-      
-      toast.error(response.message || 'Login failed');
-      setIsLoggingIn(false);
-      return { success: false, error: response.message };
+      const role = roleOfUser(response.user);
+      saveSession(role, response.token, response.user);
+      refreshSessions();
+      toast.success(`Welcome back, ${response.user.full_name || 'User'}!`);
+      return { success: true, user: response.user };
     } catch (error) {
-      console.error('❌ Login error:', error);
       const message = error.response?.data?.message || 'Login failed';
       toast.error(message);
+      return { success: false, error: message };
+    } finally {
       setIsLoggingIn(false);
-      return {
-        success: false,
-        error: message
-      };
     }
   };
 
   const adminLogin = async (email, password) => {
+    setIsLoggingIn(true);
     try {
-      setIsLoggingIn(true);
-      console.log('🔐 Admin login attempt for:', email);
-      
       const response = await authApi.adminLogin(email, password);
-      console.log('📦 Admin login response:', response);
-      
-      if (response.success) {
-        const adminData = response.admin || response.user;
-        
-        if (!adminData) {
-          console.error('❌ No admin data in response:', response);
-          toast.error('No admin data received');
-          setIsLoggingIn(false);
-          return { success: false, error: 'No admin data received' };
-        }
-        
-        console.log('✅ Admin data received:', adminData);
-        
-        const token = response.token;
-        
-        // ✅ Clear regular tokens
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        
-        // ✅ Store admin token
-        localStorage.setItem('adminToken', token);
-        localStorage.setItem('adminUser', JSON.stringify(adminData));
-        
-        // ✅ Set axios header
-        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        
-        // ✅ Set state
-        setUser(adminData);
-        setIsAuthenticated(true);
-        
-        toast.success(`Welcome Admin, ${adminData.full_name || 'Admin'}!`);
-        
-        setIsLoggingIn(false);
-        
-        // ✅ Navigate without page refresh
-        setTimeout(() => {
-          navigate('/admin/dashboard', { replace: true });
-        }, 100);
-        
-        return { success: true, user: adminData };
+      const adminData = response.admin || response.user;
+      if (!response.success || !response.token || !adminData) {
+        const message = response.message || 'Admin login failed';
+        toast.error(message);
+        return { success: false, error: message };
       }
-      
-      toast.error(response.message || 'Admin login failed');
-      setIsLoggingIn(false);
-      return { success: false, error: response.message || 'Admin login failed' };
+      const admin = { ...adminData, role: adminData.role === 'super_admin' ? 'super_admin' : 'admin' };
+      saveSession('admin', response.token, admin);
+      refreshSessions();
+      toast.success(`Welcome Admin, ${admin.full_name || 'Admin'}!`);
+      return { success: true, user: admin };
     } catch (error) {
-      console.error('❌ Admin login error:', error);
       const message = error.response?.data?.message || 'Admin login failed';
       toast.error(message);
+      return { success: false, error: message };
+    } finally {
       setIsLoggingIn(false);
-      return {
-        success: false,
-        error: message
-      };
     }
   };
 
+  // Signs out of the session this page is using only; other roles stay signed in.
   const logout = async () => {
+    const role = activeRole;
     try {
-      if (localStorage.getItem('adminToken')) {
-        await authApi.adminLogout();
-      } else {
-        await authApi.logout();
-      }
+      if (role === 'admin') await authApi.adminLogout();
+      else await authApi.logout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // ✅ Clear all state FIRST
-      setUser(null);
-      setIsAuthenticated(false);
-      
-      // ✅ Remove token from axios
-      delete axiosInstance.defaults.headers.common['Authorization'];
-      
-      // ✅ Clear localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('adminUser');
-      
+      clearSession(role);
+      refreshSessions();
       toast.success('Logged out successfully');
-      console.log('✅ Logged out, token cleared');
-      
-      // ✅ Navigate to login without page refresh
-      navigate('/login', { replace: true });
+      navigate(role === 'admin' ? '/admin/login' : '/login', { replace: true });
     }
   };
 
-  // ProfilePage called updateUser(), which this context never provided, so pressing Save
-  // threw and blanked the page. This saves to the API and refreshes the stored user.
+  // ProfilePage saves through here and the stored copy of the user is refreshed.
   const updateUser = async (changes) => {
     const response = await authApi.updateProfile(changes);
     if (response?.success && response.user) {
-      const merged = { ...user, ...response.user };
-      setUser(merged);
-      localStorage.setItem('user', JSON.stringify(merged));
+      updateSessionUser(activeRole, { ...user, ...response.user });
+      refreshSessions();
     }
     return response;
   };
 
+  // Every role that currently has a session, for the "signed in as" switcher on /login.
+  const signedInAccounts = useMemo(
+    () => Object.entries(sessions).filter(([, s]) => s).map(([role, s]) => ({ role, user: s.user })),
+    [sessions]
+  );
+
   const value = {
     updateUser,
     user,
-    loading,
-    isAuthenticated,
+    loading: false,
+    isAuthenticated: !!user,
     isLoggingIn,
     register,
     login,
     adminLogin,
     logout,
+    activeRole,
+    signedInAccounts,
     isAdmin: user?.role === 'admin' || user?.role === 'super_admin',
-    isVendor: user?.role === 'vendor'
+    isVendor: user?.role === 'vendor',
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

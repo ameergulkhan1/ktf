@@ -1,10 +1,13 @@
 ﻿// src/components/auth/Login.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { motion } from 'framer-motion';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { rememberTabRole } from '../../auth/sessionStore';
+
+const ROLE_LABELS = { admin: 'Admin', vendor: 'Vendor', user: 'Customer' };
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -12,40 +15,25 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginType, setLoginType] = useState('user'); // 'user' or 'admin'
-  const { login, adminLogin, user, isAuthenticated } = useAuth();
+  const { login, adminLogin, signedInAccounts } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   // Get the page user came from
   const from = location.state?.from?.pathname || '/';
-  console.log('📍 Login page - from:', from);
 
-  // Handle redirect when user becomes authenticated
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      handleRedirect(user);
-    }
-  }, [user, isAuthenticated]);
-
+  // This page no longer bounces signed-in visitors away: Admin, Vendor and Customer
+  // sessions live side by side, so someone already signed in as one role must still be
+  // able to sign in as another here. Existing sessions are offered as "Continue" links.
   const handleRedirect = (userData) => {
-    console.log('📍 Redirecting user with role:', userData?.role);
-    console.log('📍 Full user data:', userData);
-
-    // ✅ IMPORTANT: Check role and redirect - PRIORITY ORDER
     if (userData?.role === 'admin' || userData?.role === 'super_admin') {
-      console.log('📍 Redirecting to ADMIN dashboard');
       navigate('/admin/dashboard', { replace: true });
       return;
     }
-
     if (userData?.role === 'vendor') {
-      console.log('📍 Redirecting to VENDOR dashboard');
       navigate('/vendor/dashboard', { replace: true });
       return;
     }
-
-    // For regular users, go to the page they came from or home
-    console.log('📍 Redirecting regular user to:', from);
     navigate(from, { replace: true });
   };
 
@@ -68,12 +56,7 @@ const Login = () => {
       }
 
       if (result.success) {
-        toast.success('Welcome back!');
-        // Use the user from result
-        const userData = result.user || result.admin;
-        handleRedirect(userData);
-      } else {
-        toast.error(result.error || result.message || 'Login failed');
+        handleRedirect(result.user || result.admin);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -129,6 +112,33 @@ const Login = () => {
           </button>
         </div>
 
+        {signedInAccounts.length > 0 && (
+          <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm dark:border-blue-900 dark:bg-blue-900/20">
+            <p className="font-medium text-gray-800 dark:text-gray-100">Already signed in</p>
+            <ul className="mt-2 space-y-2">
+              {signedInAccounts.map(({ role, user: account }) => (
+                <li key={role} className="flex items-center justify-between gap-3">
+                  <span className="min-w-0 truncate text-gray-600 dark:text-gray-300">
+                    <span className="font-medium">{ROLE_LABELS[role]}:</span> {account.email || account.full_name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      rememberTabRole(role);
+                      handleRedirect(account);
+                    }}
+                    className="flex-shrink-0 font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                  >
+                    Continue →
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              Or sign in below with another account. Each role keeps its own session.
+            </p>
+          </div>
+        )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">

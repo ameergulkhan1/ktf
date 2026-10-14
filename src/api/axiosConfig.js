@@ -1,6 +1,7 @@
 ﻿// src/api/axiosConfig.js
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { getActiveRole, getTokenForRole, clearSession } from '../auth/sessionStore';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -18,74 +19,52 @@ const axiosInstance = axios.create({
 // ✅ Flag to prevent multiple logout triggers
 let isLoggingOut = false;
 
-// Request interceptor
+// Sign-in requests carry no session: a wrong password answers 401, and that must not be
+// mistaken for another role's session expiring.
+const isSignInCall = (url = '') => /\/auth\/(login|register)\b/.test(url);
+
+// Request interceptor: send the token of the role this page uses (admin, vendor or
+// customer). Requests stamp the role so a 401 clears only that session.
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-    
-    console.log(`📤 Request: ${config.method?.toUpperCase()} ${config.url}`);
-    console.log(`🔑 Token present: ${!!token}`);
-    
+    if (isSignInCall(config.url)) return config;
+    const role = getActiveRole();
+    const token = getTokenForRole(role);
+    config.kftRole = role;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log(`✅ Auth header set for ${config.url}`);
-    } else {
-      console.log(`⚠️ No token found for ${config.url}`);
     }
-    
     return config;
   },
-  (error) => {
-    console.error('❌ Request interceptor error:', error);
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Response interceptor
 axiosInstance.interceptors.response.use(
-  (response) => {
-    console.log(`📥 Response: ${response.status} ${response.config.url}`);
-    return response;
-  },
+  (response) => response,
   async (error) => {
     const status = error.response?.status;
     const url = error.config?.url;
-    
+    const role = error.config?.kftRole;
+
     console.error(`❌ Response error: ${status} ${url}`);
-    
-    // ✅ Handle 401 - but don't show toast immediately
-    if (status === 401) {
-      console.error('🔒 401 Unauthorized');
-      
-      // ✅ Check if this is a vendor API call that failed
-      const isVendorCall = url?.includes('/vendors/');
-      
-      // ✅ Only logout if not already logging out and not a vendor call (which might need token refresh)
-      if (!isLoggingOut && !isVendorCall) {
-        isLoggingOut = true;
-        
-        // Clear tokens
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminUser');
-        
-        // Remove auth header
-        delete axiosInstance.defaults.headers.common['Authorization'];
-        
-        // ✅ Only show toast and redirect if not on login page
-        if (!window.location.pathname.includes('/login')) {
-          toast.error('Session expired. Please login again.');
-          setTimeout(() => {
-            window.location.href = '/login';
-            isLoggingOut = false;
-          }, 1000);
-        } else {
+
+    // Vendor endpoints answer 401 in a few non-auth cases, so those never sign out.
+    const isVendorCall = url?.includes('/vendors/');
+    const sentToken = !!error.config?.headers?.Authorization;
+
+    if (status === 401 && sentToken && role && !isVendorCall && !isLoggingOut) {
+      isLoggingOut = true;
+      clearSession(role);
+      const loginPath = role === 'admin' ? '/admin/login' : '/login';
+      if (!window.location.pathname.includes('/login')) {
+        toast.error('Session expired. Please login again.');
+        setTimeout(() => {
+          window.location.href = loginPath;
           isLoggingOut = false;
-        }
+        }, 1000);
       } else {
-        // ✅ For vendor calls, just return error without logout
-        console.log('⏳ Vendor call returned 401 - will retry with new token');
+        isLoggingOut = false;
       }
     }
 
@@ -93,12 +72,15 @@ axiosInstance.interceptors.response.use(
       console.error('❌ 404 Error:', url);
     }
 
-    if (status >= 500) {
+    // Callers that show their own message (e.g. the AI advisor) opt out of the generic toasts.
+    const quiet = error.config?.skipErrorToast;
+
+    if (status >= 500 && !quiet) {
       console.error('Server error:', error.response?.data);
       toast.error('Server error. Please try again later.');
     }
 
-    if (error.request && !error.response) {
+    if (error.request && !error.response && !quiet) {
       toast.error('Network error. Please check your connection.');
     }
 

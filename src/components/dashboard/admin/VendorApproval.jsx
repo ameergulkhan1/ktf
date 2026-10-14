@@ -58,6 +58,15 @@ const VendorApproval = () => {
     return () => clearTimeout(timer);
   }, [page, statusFilter, searchTerm]);
 
+  // Suspension is recorded in `status`; the list query does not return is_suspended, and
+  // checking is_approved first made a suspended vendor look approved with no way back.
+  const vendorState = (vendor) => {
+    if (vendor.status === 'suspended' || vendor.is_suspended) return 'suspended';
+    if (vendor.is_approved) return 'approved';
+    if (vendor.status === 'rejected') return 'rejected';
+    return 'pending';
+  };
+
   const handleApprove = async (vendorId) => {
     if (!window.confirm('Approve this vendor?')) return;
     
@@ -216,17 +225,15 @@ const VendorApproval = () => {
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <span className={`px-2 py-1 text-xs rounded-full ${
-                      vendor.is_approved ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 
-                      vendor.is_suspended ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' :
-                      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                      vendorState(vendor) === 'approved' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
+                      vendorState(vendor) === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                      'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                     }`}>
-                      {vendor.is_approved ? '✅ Approved' : 
-                       vendor.is_suspended ? '⛔ Suspended' : 
-                       '⏳ Pending'}
+                      {{ approved: '✅ Approved', suspended: '⛔ Suspended', rejected: '❌ Rejected', pending: '⏳ Pending' }[vendorState(vendor)]}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    {!vendor.is_approved && !vendor.is_suspended && (
+                    {(vendorState(vendor) === 'pending' || vendorState(vendor) === 'rejected') && (
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleApprove(vendor.id)}
@@ -234,15 +241,17 @@ const VendorApproval = () => {
                         >
                           Approve
                         </button>
-                        <button
-                          onClick={() => handleReject(vendor.id)}
-                          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs"
-                        >
-                          Reject
-                        </button>
+                        {vendorState(vendor) === 'pending' && (
+                          <button
+                            onClick={() => handleReject(vendor.id)}
+                            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs"
+                          >
+                            Reject
+                          </button>
+                        )}
                       </div>
                     )}
-                    {vendor.is_approved && !vendor.is_suspended && (
+                    {vendorState(vendor) === 'approved' && (
                       <button
                         onClick={() => handleSuspend(vendor.id)}
                         className="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-xs"
@@ -250,7 +259,7 @@ const VendorApproval = () => {
                         Suspend
                       </button>
                     )}
-                    {vendor.is_suspended && (
+                    {vendorState(vendor) === 'suspended' && (
                       <button
                         onClick={() => handleUnsuspend(vendor.id)}
                         className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"

@@ -1,6 +1,6 @@
 // src/pages/admin/AdminLogin.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 
@@ -13,7 +13,7 @@ const AdminLogin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated && user?.role === 'admin') {
+    if (isAuthenticated && (user?.role === 'admin' || user?.role === 'super_admin')) {
       navigate('/admin/dashboard');
     }
   }, [isAuthenticated, user, navigate]);
@@ -36,13 +36,11 @@ const AdminLogin = () => {
       
       console.log('📦 Admin login result:', result);
 
+      // adminLogin already shows the welcome/error toast.
       if (result.success) {
-        toast.success('Welcome Admin!');
-        navigate('/admin/dashboard');
+        navigate('/admin/dashboard', { replace: true });
       } else {
-        const errorMsg = result.error || result.message || 'Login failed';
-        setError(errorMsg);
-        toast.error(errorMsg);
+        setError(result.error || result.message || 'Login failed');
       }
     } catch (err) {
       console.error('❌ Admin login error:', err);
@@ -130,6 +128,19 @@ const AdminLogin = () => {
             <p>Use your admin credentials</p>
           </div>
         </form>
+
+        {/* QA: there was no way back from here to the customer/vendor sign-in screen. */}
+        <div className="border-t border-gray-200 pt-6 text-center dark:border-gray-700">
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+          >
+            <span aria-hidden="true">←</span> Back to login options
+          </Link>
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            Customer or vendor? Sign in from the main login page.
+          </p>
+        </div>
       </div>
     </div>
   );

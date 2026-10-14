@@ -4,6 +4,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from '../common/Navbar';
 import Footer from '../common/Footer';
 import ErrorBoundary from '../common/ErrorBoundary';
+import ChatWidget from '../ai/ChatWidget';
 
 const MainLayout = () => {
   const { pathname } = useLocation();
@@ -22,6 +23,7 @@ const MainLayout = () => {
         </ErrorBoundary>
       </main>
       <Footer />
+      <ChatWidget />
     </div>
   );
 };
